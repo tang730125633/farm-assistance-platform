@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const { addItem, findByCondition } = require('../dao/db');
+const { userDb } = require('../dao/dbAdapter');
 const { JWT_SECRET, authenticateToken } = require('../utils/auth');
 const { ERRORS, sendErrorResponse, asyncHandler, validateRequiredFields } = require('../utils/errorHandler');
 
@@ -59,7 +59,7 @@ router.post('/register', asyncHandler(async (req, res) => {
   }
 
   // 检查用户名是否已存在
-  const existingUsers = findByCondition('users.json', user => 
+  const existingUsers = await userDb.findByCondition(user =>
     user.username === username || user.email === email
   );
 
@@ -82,9 +82,26 @@ router.post('/register', asyncHandler(async (req, res) => {
   };
 
   // 保存用户
-  const savedUser = addItem('users.json', newUser);
-  
-  if (!savedUser) {
+  try {
+    const savedUser = await userDb.create(newUser);
+
+    if (!savedUser) {
+      return sendErrorResponse(res, ERRORS.DATABASE_ERROR, '注册失败，请重试');
+    }
+
+    // 生成 Token
+    const token = generateToken(savedUser);
+
+    // 返回用户信息（不包含密码）
+    const { password: _, ...userWithoutPassword } = savedUser;
+
+    res.status(201).json({
+      message: '注册成功',
+      user: userWithoutPassword,
+      token
+    });
+  } catch (error) {
+    console.error('注册错误:', error);
     return sendErrorResponse(res, ERRORS.DATABASE_ERROR, '注册失败，请重试');
   }
 
@@ -109,7 +126,7 @@ router.post('/login', asyncHandler(async (req, res) => {
   validateRequiredFields(req.body, ['username', 'password']);
 
   // 查找用户
-  const users = findByCondition('users.json', user => 
+  const users = await userDb.findByCondition(user =>
     user.username === username || user.email === username
   );
 
@@ -154,10 +171,9 @@ router.get('/verify', authenticateToken, (req, res) => {
 });
 
 // 获取用户列表（基本信息，不包含密码）
-router.get('/users', authenticateToken, (req, res) => {
+router.get('/users', authenticateToken, async (req, res) => {
   try {
-    const { readJsonFile } = require('../dao/db');
-    const users = readJsonFile('users.json');
+    const users = await userDb.findAll();
 
     // 只返回基本信息，不包含密码
     const usersBasicInfo = users.map(user => ({

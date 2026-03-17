@@ -3,6 +3,10 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { performanceMiddleware, getPerformanceStats } = require('./utils/performance');
+const { initDatabase } = require('./config/database');
+
+// 初始化数据库
+initDatabase().catch(console.error);
 
 // 导入路由
 const authRoutes = require('./routes/auth');
