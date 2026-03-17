@@ -64,20 +64,26 @@ async function loadDashboardData() {
 // 加载我的商品
 async function loadMyProducts() {
     try {
+        console.log('[加载商品] 开始请求 /api/products/my');
         const response = await fetch('/api/products/my', {
             headers: authHeaders()
         });
 
+        console.log('[加载商品] 响应状态:', response.status);
+
         if (!response.ok) {
-            throw new Error('加载商品失败');
+            const errorText = await response.text();
+            console.error('[加载商品] 错误响应:', errorText);
+            throw new Error(`加载商品失败: ${response.status} - ${errorText}`);
         }
 
         const data = await response.json();
+        console.log('[加载商品] 成功, 商品数量:', data.products?.length);
         myProducts = data.products || [];
         renderProducts();
     } catch (error) {
-        console.error('加载商品错误:', error);
-        alert('加载商品失败');
+        console.error('[加载商品] 错误:', error);
+        alert('加载商品失败: ' + error.message);
     }
 }
 
@@ -528,16 +534,23 @@ document.getElementById('addProductForm').addEventListener('submit', async (e) =
     }
 
     try {
+        console.log('[上架商品] 开始请求 /api/products');
         const response = await fetch('/api/products', {
             method: 'POST',
             headers: authHeaders(), // 只需要认证头，不需要 Content-Type（FormData 会自动设置）
             body: formData
         });
 
+        console.log('[上架商品] 响应状态:', response.status);
+
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || '上架失败');
+            const errorText = await response.text();
+            console.error('[上架商品] 错误响应:', errorText);
+            throw new Error(errorText || '上架失败');
         }
+
+        const result = await response.json();
+        console.log('[上架商品] 成功:', result);
 
         alert('商品上架成功！');
         document.getElementById('addProductForm').reset();
