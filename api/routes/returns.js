@@ -47,11 +47,21 @@ router.get('/', authenticateToken, async (req, res) => {
     const products = await productDb.findAll();
 
     const isAdmin = req.user.role === 'admin';
+    const isFarmer = req.user.role === 'farmer';
 
     let result = returns;
 
-    // 非管理员只能看到自己的退货申请
-    if (!isAdmin) {
+    // 权限过滤
+    if (isFarmer) {
+      // 农户：查看涉及自己商品的退货申请
+      result = returns.filter(r => {
+        const order = orders.find(o => o.id === r.orderId);
+        if (!order || !order.items) return false;
+        // 检查订单中是否包含该农户的商品
+        return order.items.some(item => item.farmerId === req.user.id);
+      });
+    } else if (!isAdmin) {
+      // 消费者：只能看到自己的退货申请
       result = returns.filter(r => r.userId === req.user.id);
     }
 

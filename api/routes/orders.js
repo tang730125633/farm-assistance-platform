@@ -47,6 +47,19 @@ router.get('/', authenticateToken, async (req, res) => {
     result = orders.filter(o => o.userId === req.user.id);
   }
 
+    // 为所有订单补充用户信息
+    result = result.map(order => {
+      const user = users.find(u => u.id === order.userId);
+      return {
+        ...order,
+        userInfo: user ? {
+          id: user.id,
+          username: user.username,
+          email: user.email
+        } : null
+      };
+    });
+
     res.json({ orders: result });
   } catch (error) {
     console.error('获取订单列表错误:', error);
