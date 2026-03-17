@@ -160,6 +160,86 @@
             background: #d4edda;
             color: #155724;
         }
+        .status-shipped {
+            background: #cce5ff;
+            color: #004085;
+        }
+        .status-finished {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status-returned {
+            background: #fff3cd;
+            color: #856404;
+        }
+        /* 退货状态 */
+        .return-status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .return-status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+        .return-status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        /* 退货卡片 */
+        .return-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: white;
+        }
+        .return-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .return-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .return-items {
+            margin-top: 15px;
+        }
+        .return-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .return-images {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .return-images img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .admin-comment {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border-left: 3px solid #667eea;
+        }
         .order-items {
             margin-top: 15px;
         }
@@ -252,6 +332,11 @@
                 <div class="value" id="pendingEarnings" style="color: white;">¥0.00</div>
                 <small style="opacity: 0.9;">待支付订单金额</small>
             </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
+                <h3 style="color: white;"><i class="fas fa-undo-alt"></i> 退货申请</h3>
+                <div class="value" id="totalReturns" style="color: white;">0</div>
+                <small style="opacity: 0.9;">待审核 <span id="pendingReturnsCount" style="font-weight: 600;">0</span></small>
+            </div>
         </div>
 
         <!-- 标签页 -->
@@ -259,6 +344,7 @@
             <button class="tab-btn active" data-tab="products">我的商品</button>
             <button class="tab-btn" data-tab="add-product">上架新商品</button>
             <button class="tab-btn" data-tab="orders">我的订单</button>
+            <button class="tab-btn" data-tab="returns">退货管理</button>
         </div>
 
         <!-- 商品列表 -->
@@ -346,6 +432,20 @@
                     <div class="empty-state">
                         <i class="fas fa-shopping-bag"></i>
                         <p>暂无订单</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 退货管理 -->
+        <div id="returns-tab" class="tab-content">
+            <div class="orders-list">
+                <h2><i class="fas fa-undo-alt"></i> 退货管理</h2>
+                <p style="color: #666; margin-bottom: 20px;">查看涉及您商品的退货申请</p>
+                <div id="returnsContainer">
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        <p>暂无退货申请</p>
                     </div>
                 </div>
             </div>

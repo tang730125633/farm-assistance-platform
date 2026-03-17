@@ -2,6 +2,7 @@
 let currentUser = null;
 let myProducts = [];
 let myOrders = [];
+let myReturns = [];
 
 // 工具函数
 function getToken() {
@@ -56,6 +57,7 @@ async function loadDashboardData() {
     // 必须先加载商品，然后才能加载订单（订单筛选依赖商品数据）
     await loadMyProducts();
     await loadMyOrders();
+    await loadMyReturns();
     updateStats();
 }
 
@@ -278,6 +280,144 @@ function getStatusText(status) {
     return statusMap[status] || status;
 }
 
+// 获取退货状态文本
+function getReturnStatusText(status) {
+    const statusMap = {
+        'pending': '待审核',
+        'approved': '已批准',
+        'rejected': '已拒绝'
+    };
+    return statusMap[status] || status;
+}
+
+// 加载我的退货申请
+async function loadMyReturns() {
+    try {
+        const response = await fetch('/api/returns', {
+            headers: authHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('加载退货申请失败');
+        }
+
+        const data = await response.json();
+        myReturns = data.returns || [];
+
+        console.log('加载的退货申请数量:', myReturns.length);
+        renderReturns();
+    } catch (error) {
+        console.error('加载退货申请错误:', error);
+    }
+}
+
+// 渲染退货列表
+function renderReturns() {
+    const container = document.getElementById('returnsContainer');
+
+    if (myReturns.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                <p>暂无涉及您商品的退货申请</p>
+                <small style="color: #666;">当消费者申请退货时，您将在此看到相关信息</small>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = myReturns.map(ret => {
+        const orderInfo = ret.orderInfo || {};
+        const userInfo = ret.userInfo || {};
+        const items = ret.items || [];
+        const images = ret.images || [];
+
+        return `
+            <div class="return-card" style="border-left: 4px solid ${getReturnStatusColor(ret.status)};">
+                <div class="return-header">
+                    <div>
+                        <strong>退货单号:</strong> <span style="font-family: monospace;">${ret.id.substring(0, 12)}...</span><br>
+                        <small><i class="fas fa-receipt"></i> 订单号: ${ret.orderId.substring(0, 12)}...</small><br>
+                        <small><i class="fas fa-clock"></i> ${new Date(ret.createdAt).toLocaleString('zh-CN')}</small>
+                    </div>
+                    <span class="return-status return-status-${ret.status}">
+                        ${getReturnStatusText(ret.status)}
+                    </span>
+                </div>
+
+                <!-- 消费者信息 -->
+                <div style="background: #f8f9fa; padding: 12px; margin: 10px 0; border-radius: 5px;">
+                    <strong style="color: #333;"><i class="fas fa-user-circle"></i> 申请人</strong><br>
+                    <span style="font-size: 16px; color: #495057; font-weight: 600;">
+                        ${userInfo.username || '未知用户'}
+                    </span>
+                    ${userInfo.email ? `<br><small style="color: #6c757d;"><i class="fas fa-envelope"></i> ${userInfo.email}</small>` : ''}
+                </div>
+
+                <!-- 退货商品明细 -->
+                <div class="return-items" style="background: white; padding: 12px; border: 1px solid #e9ecef; border-radius: 5px;">
+                    <strong style="color: #495057; margin-bottom: 8px; display: block;">
+                        <i class="fas fa-shopping-basket"></i> 涉及您的商品
+                    </strong>
+                    ${(orderInfo.items || []).filter(item => myProducts.some(p => p.id === item.productId)).map(item => `
+                        <div class="return-item" style="padding: 8px; background: #f8f9fa; margin: 4px 0; border-radius: 3px;">
+                            <span style="font-weight: 500;">
+                                ${item.name}
+                                <span style="color: #6c757d; font-size: 14px;">× ${item.qty}</span>
+                            </span>
+                            <span style="font-weight: 600; color: #495057;">¥${(item.price * item.qty).toFixed(2)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <!-- 退货原因 -->
+                <div style="margin-top: 12px; padding: 12px; background: #fff3cd; border-radius: 5px;">
+                    <strong style="color: #856404;"><i class="fas fa-comment"></i> 退货原因</strong>
+                    <p style="margin: 8px 0 0 0; color: #856404;">${ret.reason || '未填写原因'}</p>
+                </div>
+
+                <!-- 退款金额 -->
+                <div style="margin-top: 12px; padding: 12px; background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-radius: 5px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong style="color: #c62828;"><i class="fas fa-money-bill-wave"></i> 退款金额</strong>
+                        <span style="font-size: 24px; font-weight: bold; color: #c62828;">¥${ret.refundAmount.toFixed(2)}</span>
+                    </div>
+                </div>
+
+                <!-- 退货图片 -->
+                ${images.length > 0 ? `
+                <div style="margin-top: 12px;">
+                    <strong style="color: #495057;"><i class="fas fa-images"></i> 退货凭证</strong>
+                    <div class="return-images">
+                        ${images.map(img => `
+                            <img src="${img}" alt="退货图片" onclick="window.open('${img}', '_blank')">
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- 管理员备注 -->
+                ${ret.adminComment ? `
+                <div class="admin-comment">
+                    <strong><i class="fas fa-user-shield"></i> 管理员备注</strong>
+                    <p style="margin: 8px 0 0 0;">${ret.adminComment}</p>
+                </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+// 获取退货状态颜色
+function getReturnStatusColor(status) {
+    const colors = {
+        'pending': '#ffc107',
+        'approved': '#28a745',
+        'rejected': '#dc3545'
+    };
+    return colors[status] || '#6c757d';
+}
+
 // 更新统计数据
 function updateStats() {
     // 商品总数
@@ -310,13 +450,28 @@ function updateStats() {
     document.getElementById('paidEarnings').textContent = '¥' + paidEarnings.toFixed(2);
     document.getElementById('pendingEarnings').textContent = '¥' + pendingEarnings.toFixed(2);
 
+    // 退货统计
+    const pendingReturns = myReturns.filter(r => r.status === 'pending');
+    const approvedReturns = myReturns.filter(r => r.status === 'approved');
+    const totalRefundAmount = approvedReturns.reduce((sum, r) => sum + (r.refundAmount || 0), 0);
+
+    // 更新退货统计显示
+    const totalReturnsEl = document.getElementById('totalReturns');
+    const pendingReturnsCountEl = document.getElementById('pendingReturnsCount');
+    if (totalReturnsEl) totalReturnsEl.textContent = myReturns.length;
+    if (pendingReturnsCountEl) pendingReturnsCountEl.textContent = pendingReturns.length;
+
     console.log('统计更新:', {
         商品总数: myProducts.length,
         订单总数: myOrders.length,
         已付款订单: paidOrders.length,
         待付款订单: pendingOrders.length,
         已到账: paidEarnings,
-        待到账: pendingEarnings
+        待到账: pendingEarnings,
+        退货申请: myReturns.length,
+        待审核退货: pendingReturns.length,
+        已批准退货: approvedReturns.length,
+        累计退款: totalRefundAmount
     });
 }
 
