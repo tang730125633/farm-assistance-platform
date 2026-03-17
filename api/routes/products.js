@@ -92,13 +92,16 @@ async function requireProductOwnership(req, res, next) {
   next();
 }
 
-// 获取商品列表 - 添加缓存
-router.get('/', cacheMiddleware(60000, (req) => `products:${JSON.stringify(req.query)}`), async (req, res) => {
+// 获取商品列表
+router.get('/', async (req, res) => {
   try {
     const { page = 1, limit = 10, farmerId, search, category } = req.query;
     const pageNum = Math.max(parseInt(page, 10) || 1, 1);
     const limitNum = Math.max(parseInt(limit, 10) || 10, 1);
     let products = await productDb.findAll();
+
+    console.log(`[商品列表] 查询条件: farmerId=${farmerId}, search=${search}, 总商品数: ${products.length}`);
+    console.log(`[商品列表] 商品详情:`, products.map(p => ({ id: p.id.substring(0,8), name: p.name, farmerId: p.farmerId?.substring(0,8) })));
 
     // 按农户筛选
     if (farmerId) {
@@ -177,7 +180,13 @@ router.get('/my', authenticateToken, requireFarmerOrAdmin, async (req, res) => {
     const pageNum = Math.max(parseInt(page, 10) || 1, 1);
     const limitNum = Math.max(parseInt(limit, 10) || 10, 1);
     let list = await productDb.findAll();
+
+    console.log(`[我的商品] 用户ID: ${req.user.id}, 角色: ${req.user.role}, 总商品数: ${list.length}`);
+    console.log(`[我的商品] 商品farmerId列表:`, list.map(p => ({ id: p.id.substring(0,8), farmerId: p.farmerId?.substring(0,8) })));
+
     list = list.filter(product => product.farmerId === req.user.id);
+
+    console.log(`[我的商品] 筛选后商品数: ${list.length}`);
     const startIndex = (pageNum - 1) * limitNum;
     const endIndex = startIndex + limitNum;
     const paginated = list.slice(startIndex, endIndex);
