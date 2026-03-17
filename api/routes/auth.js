@@ -178,4 +178,35 @@ router.get('/users', authenticateToken, async (req, res) => {
   }
 });
 
+// 删除用户（仅管理员）
+router.delete('/users/:id', authenticateToken, async (req, res) => {
+  try {
+    // 检查是否是管理员
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: '只有管理员可以删除用户' });
+    }
+
+    const userId = req.params.id;
+
+    // 不能删除自己
+    if (userId === req.user.id) {
+      return res.status(400).json({ error: '不能删除当前登录的用户' });
+    }
+
+    // 检查用户是否存在
+    const user = await userDb.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: '用户不存在' });
+    }
+
+    // 删除用户
+    await userDb.delete(userId);
+
+    res.json({ message: '用户已删除' });
+  } catch (error) {
+    console.error('删除用户错误:', error);
+    res.status(500).json({ error: '服务器错误' });
+  }
+});
+
 module.exports = router;

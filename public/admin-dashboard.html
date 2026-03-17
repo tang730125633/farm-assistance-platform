@@ -415,6 +415,9 @@
                 <button class="tab-btn" data-tab="products">
                     <i class="fas fa-box"></i> 所有商品
                 </button>
+                <button class="tab-btn" data-tab="users">
+                    <i class="fas fa-users"></i> 用户管理
+                </button>
             </div>
 
             <!-- 订单管理 -->
@@ -484,6 +487,35 @@
             <div class="tab-content" id="tab-products">
                 <div id="productsContainer" class="product-grid">
                     <!-- 动态加载 -->
+                </div>
+            </div>
+
+            <!-- 用户管理 -->
+            <div class="tab-content" id="tab-users">
+                <div class="filter-bar">
+                    <select id="userRoleFilter">
+                        <option value="">全部角色</option>
+                        <option value="consumer">消费者</option>
+                        <option value="farmer">农户</option>
+                        <option value="admin">管理员</option>
+                    </select>
+                    <input type="text" id="userSearch" placeholder="搜索用户名或邮箱...">
+                </div>
+                <div id="usersTableContainer">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>用户ID</th>
+                                <th>用户名</th>
+                                <th>邮箱</th>
+                                <th>角色</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- 动态加载 -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -782,6 +814,85 @@
             `}).join('');
         }
 
+        // 渲染用户列表
+        function renderUsers() {
+            const filterRole = document.getElementById('userRoleFilter').value;
+            const searchQuery = document.getElementById('userSearch').value.toLowerCase();
+
+            let filtered = usersData;
+            if (filterRole) {
+                filtered = filtered.filter(u => u.role === filterRole);
+            }
+            if (searchQuery) {
+                filtered = filtered.filter(u =>
+                    u.username.toLowerCase().includes(searchQuery) ||
+                    u.email.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            const tbody = document.getElementById('usersTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">暂无用户</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(user => `
+                <tr>
+                    <td>${user.id.slice(0, 8)}...</td>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td><span class="status-badge ${user.role}">${getRoleText(user.role)}</span></td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.id}')">
+                            <i class="fas fa-trash"></i> 删除
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 获取角色文本
+        function getRoleText(role) {
+            const map = {
+                'consumer': '消费者',
+                'farmer': '农户',
+                'admin': '管理员'
+            };
+            return map[role] || role;
+        }
+
+        // 删除用户
+        async function deleteUser(userId) {
+            if (!confirm('确定要删除这个用户吗？此操作不可恢复。')) return;
+
+            // 不能删除自己
+            if (userId === currentUser.id) {
+                alert('不能删除当前登录的用户');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE_URL}/api/auth/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    alert('用户已删除');
+                    await loadUsers();
+                    renderUsers();
+                    updateStats();
+                } else {
+                    const data = await response.json();
+                    alert(data.error?.message || '删除失败');
+                }
+            } catch (error) {
+                console.error('删除用户失败:', error);
+                alert('删除失败');
+            }
+        }
+
         // 查看订单详情
         function viewOrderDetail(orderId) {
             const order = ordersData.find(o => o.id === orderId);
@@ -1008,6 +1119,8 @@
             document.getElementById('orderStatusFilter').addEventListener('change', renderOrders);
             document.getElementById('orderSearch').addEventListener('input', renderOrders);
             document.getElementById('returnStatusFilter').addEventListener('change', renderReturns);
+            document.getElementById('userRoleFilter').addEventListener('change', renderUsers);
+            document.getElementById('userSearch').addEventListener('input', renderUsers);
 
             // 退出登录
             document.getElementById('logoutBtn').addEventListener('click', () => {

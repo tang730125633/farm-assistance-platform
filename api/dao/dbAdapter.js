@@ -69,6 +69,18 @@ const userDb = {
     users.push(userData);
     writeJsonFile('users.json', users);
     return userData;
+  },
+
+  async delete(id) {
+    if (usePostgres) {
+      const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING *', [id]);
+      return result.rows.length > 0;
+    }
+    const users = readJsonFile('users.json');
+    const filtered = users.filter(u => u.id !== id);
+    if (filtered.length === users.length) return false;
+    writeJsonFile('users.json', filtered);
+    return true;
   }
 };
 
