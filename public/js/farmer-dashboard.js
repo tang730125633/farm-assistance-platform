@@ -107,7 +107,7 @@ function renderProducts() {
         <tr>
             <td><img src="${product.image || 'https://via.placeholder.com/60'}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/60?text=图片'"></td>
             <td><strong>${product.name}</strong></td>
-            <td>¥${product.price.toFixed(2)}</td>
+            <td>¥${parseFloat(product.price || 0).toFixed(2)}</td>
             <td>${product.stock}</td>
             <td>${product.unit || '千克'}</td>
             <td>${new Date(product.createdAt).toLocaleDateString('zh-CN')}</td>
@@ -245,7 +245,7 @@ function renderOrders() {
                                 ${item.name}
                                 <span style="color: #6c757d; font-size: 14px;">× ${item.qty} ${unit}</span>
                             </span>
-                            <span style="font-weight: 600; color: #495057;">¥${(item.price * item.qty).toFixed(2)}</span>
+                            <span style="font-weight: 600; color: #495057;">¥${(parseFloat(item.price || 0) * item.qty).toFixed(2)}</span>
                         </div>
                     `}).join('')}
                 </div>

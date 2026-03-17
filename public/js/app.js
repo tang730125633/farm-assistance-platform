@@ -394,7 +394,7 @@ function renderProducts() {
             <div class="product-info">
                 <h3 class="product-name">${product.name}</h3>
                 <p class="product-description">${product.description}</p>
-                <div class="product-price">¥${product.price.toFixed(2)} / ${product.unit || '千克'}</div>
+                <div class="product-price">¥${parseFloat(product.price || 0).toFixed(2)} / ${product.unit || '千克'}</div>
                 <div class="product-stock">库存: ${product.stock} ${product.unit || '千克'}</div>
                 <button class="add-to-cart" onclick="addToCart('${product.id}')">
                     <i class="fas fa-shopping-cart"></i>
