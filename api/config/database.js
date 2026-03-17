@@ -1,9 +1,11 @@
 const { Pool } = require('pg');
 
 // 使用 Railway 提供的 DATABASE_URL 环境变量
+// 检测是否为本地数据库（不使用 SSL）
+const isLocalDb = process.env.DATABASE_URL?.includes('localhost') || process.env.DATABASE_URL?.includes('127.0.0.1');
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: isLocalDb ? false : (process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false)
 });
 
 // 初始化数据库表
