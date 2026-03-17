@@ -103,6 +103,20 @@ async function initDatabase() {
       )
     `);
 
+    // 创建支付记录表
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS payments (
+        id VARCHAR(50) PRIMARY KEY,
+        order_id VARCHAR(50) REFERENCES orders(id) ON DELETE CASCADE,
+        user_id VARCHAR(50) REFERENCES users(id),
+        amount DECIMAL(10, 2) NOT NULL,
+        method VARCHAR(50) DEFAULT 'mock',
+        type VARCHAR(20) DEFAULT 'payment' CHECK (type IN ('payment', 'refund')),
+        status VARCHAR(20) DEFAULT 'success',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // 插入默认 admin 用户
     const adminExists = await client.query('SELECT * FROM users WHERE username = $1', ['admin']);
     if (adminExists.rows.length === 0) {
