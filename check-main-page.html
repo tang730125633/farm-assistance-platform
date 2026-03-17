@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>检查主页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test { margin: 20px 0; padding: 20px; border: 1px solid #ddd; }
+        button { padding: 10px 20px; margin: 5px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        .result { margin-top: 10px; padding: 10px; background: #f0f0f0; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>检查主页面问题</h1>
+    
+    <div class="test">
+        <h3>1. 检查主页面加载</h3>
+        <button onclick="loadMainPage()">加载主页面</button>
+        <div id="loadResult" class="result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>2. 检查JavaScript文件</h3>
+        <button onclick="checkJS()">检查JS文件</button>
+        <div id="jsResult" class="result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>3. 检查CSS文件</h3>
+        <button onclick="checkCSS()">检查CSS文件</button>
+        <div id="cssResult" class="result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>4. 检查API端点</h3>
+        <button onclick="checkAPI()">检查API</button>
+        <div id="apiResult" class="result"></div>
+    </div>
+
+    <script>
+        function showResult(elementId, message) {
+            const resultDiv = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            resultDiv.scrollTop = resultDiv.scrollHeight;
+        }
+
+        async function loadMainPage() {
+            showResult('loadResult', '正在加载主页面...');
+            
+            try {
+                const response = await fetch('/');
+                const html = await response.text();
+                
+                if (response.ok) {
+                    showResult('loadResult', '✅ 主页面加载成功');
+                    
+                    // 检查关键元素
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    const elements = {
+                        'loginBtn': doc.getElementById('loginBtn'),
+                        'registerBtn': doc.getElementById('registerBtn'),
+                        'authModal': doc.getElementById('authModal'),
+                        'loginForm': doc.getElementById('loginForm'),
+                        'registerForm': doc.getElementById('registerForm')
+                    };
+                    
+                    for (const [name, element] of Object.entries(elements)) {
+                        if (element) {
+                            showResult('loadResult', `✅ ${name}: 存在`);
+                        } else {
+                            showResult('loadResult', `❌ ${name}: 缺失`);
+                        }
+                    }
+                } else {
+                    showResult('loadResult', `❌ 主页面加载失败: ${response.status}`);
+                }
+            } catch (error) {
+                showResult('loadResult', `❌ 错误: ${error.message}`);
+            }
+        }
+
+        async function checkJS() {
+            showResult('jsResult', '正在检查JavaScript文件...');
+            
+            try {
+                const response = await fetch('/js/app.js');
+                const js = await response.text();
+                
+                if (response.ok) {
+                    showResult('jsResult', '✅ JavaScript文件加载成功');
+                    
+                    // 检查关键函数
+                    const functions = [
+                        'showAuthModal',
+                        'hideAuthModal',
+                        'handleLogin',
+                        'handleRegister',
+                        'setupEventListeners'
+                    ];
+                    
+                    for (const func of functions) {
+                        if (js.includes(`function ${func}`) || js.includes(`${func}:`)) {
+                            showResult('jsResult', `✅ 函数 ${func}: 存在`);
+                        } else {
+                            showResult('jsResult', `❌ 函数 ${func}: 缺失`);
+                        }
+                    }
+                } else {
+                    showResult('jsResult', `❌ JavaScript文件加载失败: ${response.status}`);
+                }
+            } catch (error) {
+                showResult('jsResult', `❌ 错误: ${error.message}`);
+            }
+        }
+
+        async function checkCSS() {
+            showResult('cssResult', '正在检查CSS文件...');
+            
+            try {
+                const response = await fetch('/css/style.css');
+                const css = await response.text();
+                
+                if (response.ok) {
+                    showResult('cssResult', '✅ CSS文件加载成功');
+                    
+                    // 检查关键样式
+                    const styles = [
+                        '.btn',
+                        '.navbar',
+                        '.modal',
+                        '.nav-auth'
+                    ];
+                    
+                    for (const style of styles) {
+                        if (css.includes(style)) {
+                            showResult('cssResult', `✅ 样式 ${style}: 存在`);
+                        } else {
+                            showResult('cssResult', `❌ 样式 ${style}: 缺失`);
+                        }
+                    }
+                } else {
+                    showResult('cssResult', `❌ CSS文件加载失败: ${response.status}`);
+                }
+            } catch (error) {
+                showResult('cssResult', `❌ 错误: ${error.message}`);
+            }
+        }
+
+        async function checkAPI() {
+            showResult('apiResult', '正在检查API端点...');
+            
+            const endpoints = [
+                '/api',
+                '/api/auth/login',
+                '/api/auth/register',
+                '/api/products'
+            ];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint);
+                    if (response.ok) {
+                        showResult('apiResult', `✅ ${endpoint}: 正常`);
+                    } else {
+                        showResult('apiResult', `❌ ${endpoint}: ${response.status}`);
+                    }
+                } catch (error) {
+                    showResult('apiResult', `❌ ${endpoint}: ${error.message}`);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

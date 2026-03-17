@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>我的订单</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .container-narrow{max-width:960px;margin:100px auto 40px;padding:0 20px}
+    .order-card{background:#fff;border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,.08);padding:16px;margin-bottom:14px}
+    .order-hd{display:flex;justify-content:space-between;align-items:center}
+    .order-id{font-weight:600;color:#2c5530}
+    .order-status{padding:2px 8px;border-radius:999px;color:#fff;font-size:12px}
+    .st-pending{background:#f39c12}.st-paid{background:#2980b9}.st-shipped{background:#8e44ad}.st-finished{background:#27ae60}.st-cancelled{background:#7f8c8d}
+    .order-body{margin-top:8px;color:#444}
+    .order-ops{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+  </style>
+  <script defer src="/js/orders.js"></script>
+  <script>
+    function toast(msg, type){
+      const el=document.createElement('div');
+      el.textContent=msg; el.style.cssText=`position:fixed;top:100px;right:20px;background:${type==='error'?'#e74c3c':'#27ae60'};color:#fff;padding:10px 16px;border-radius:6px;z-index:9999;`;
+      document.body.appendChild(el); setTimeout(()=>el.remove(),2100);
+    }
+  </script>
+  <style>
+    .topbar{position:fixed;top:0;left:0;right:0;z-index:1000;background:#2c5530;color:#fff;padding:12px 0}
+    .topbar .wrap{max-width:960px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:0 20px}
+    .topbar a{color:#fff;text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="wrap">
+      <div><i class="fas fa-list"></i> 我的订单</div>
+      <div><a href="/">返回首页</a></div>
+    </div>
+  </div>
+  <div class="container-narrow">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:12px;background:#f8f9fa;border-radius:8px">
+      <div>
+        <span id="lastUpdate" style="color:#666;font-size:14px">加载中...</span>
+        <span id="autoRefreshStatus" style="color:#27ae60;font-size:12px;margin-left:10px">● 自动刷新已启用</span>
+      </div>
+      <button class="btn btn-primary btn-small" onclick="manualRefresh()" style="display:flex;align-items:center;gap:6px">
+        <i class="fas fa-sync-alt" id="refreshIcon"></i> 立即刷新
+      </button>
+    </div>
+    <div id="ordersContainer"></div>
+  </div>
+</body>
+</html>
+

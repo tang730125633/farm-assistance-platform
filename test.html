@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>助农服务平台 - API测试工具</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .section h3 {
+            color: #34495e;
+            margin-top: 0;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .success {
+            background: #27ae60;
+        }
+        .danger {
+            background: #e74c3c;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .token-display {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌾 助农服务平台 - API测试工具</h1>
+        
+        <div class="grid">
+            <!-- 用户认证区域 -->
+            <div class="section">
+                <h3>🔐 用户认证</h3>
+                <div>
+                    <input type="text" id="username" placeholder="用户名" value="testuser">
+                    <input type="password" id="password" placeholder="密码" value="123456">
+                    <select id="role">
+                        <option value="farmer">农户</option>
+                        <option value="consumer">消费者</option>
+                        <option value="admin">管理员</option>
+                    </select>
+                    <input type="email" id="email" placeholder="邮箱" value="test@example.com">
+                </div>
+                <button onclick="register()">注册用户</button>
+                <button onclick="login()">登录</button>
+                <div id="token" class="token-display" style="display:none;"></div>
+            </div>
+
+            <!-- 商品管理区域 -->
+            <div class="section">
+                <h3>🛍️ 商品管理</h3>
+                <button onclick="getProducts()">获取商品列表</button>
+                <button onclick="showAddProduct()">添加商品</button>
+                <div id="addProductForm" style="display:none;">
+                    <input type="text" id="productName" placeholder="商品名称">
+                    <textarea id="productDesc" placeholder="商品描述"></textarea>
+                    <input type="number" id="productPrice" placeholder="价格" step="0.01">
+                    <input type="number" id="productStock" placeholder="库存">
+                    <button onclick="addProduct()" class="success">添加商品</button>
+                </div>
+            </div>
+
+            <!-- 订单管理区域 -->
+            <div class="section">
+                <h3>📦 订单管理</h3>
+                <button onclick="getOrders()">获取我的订单</button>
+                <button onclick="showCreateOrder()">创建订单</button>
+                <div id="createOrderForm" style="display:none;">
+                    <select id="productSelect">
+                        <option value="">选择商品</option>
+                    </select>
+                    <input type="number" id="orderQty" placeholder="数量" min="1">
+                    <button onclick="createOrder()" class="success">创建订单</button>
+                </div>
+            </div>
+
+            <!-- 系统状态区域 -->
+            <div class="section">
+                <h3>⚙️ 系统状态</h3>
+                <button onclick="ping()">检查服务状态</button>
+                <button onclick="getUsers()">获取用户列表</button>
+                <button onclick="clearToken()" class="danger">清除登录状态</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>📋 操作结果</h3>
+            <div id="result" class="result">点击上方按钮开始测试...</div>
+        </div>
+    </div>
+
+    <script>
+        let currentToken = localStorage.getItem('token');
+        if (currentToken) {
+            document.getElementById('token').style.display = 'block';
+            document.getElementById('token').textContent = 'Token: ' + currentToken;
+        }
+
+        function log(message) {
+            document.getElementById('result').textContent = message;
+        }
+
+        function logJson(data) {
+            document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function apiCall(url, options = {}) {
+            try {
+                // 将相对路径转换为完整的API地址
+                const fullUrl = url.startsWith('/api/') ? `http://localhost:5174${url}` : url;
+                const response = await fetch(fullUrl, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(currentToken && { 'Authorization': `Bearer ${currentToken}` }),
+                        ...options.headers
+                    },
+                    ...options
+                });
+                const data = await response.json();
+                return { success: response.ok, data, status: response.status };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            const email = document.getElementById('email').value;
+
+            const result = await apiCall('/api/auth/register', {
+                method: 'POST',
+                body: JSON.stringify({ username, password, role, email })
+            });
+
+            if (result.success) {
+                logJson(result.data);
+                alert('注册成功！');
+            } else {
+                logJson(result.data || result.error);
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const result = await apiCall('/api/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ username, password })
+            });
+
+            if (result.success) {
+                currentToken = result.data.token;
+                localStorage.setItem('token', currentToken);
+                document.getElementById('token').style.display = 'block';
+                document.getElementById('token').textContent = 'Token: ' + currentToken;
+                logJson(result.data);
+                alert('登录成功！');
+            } else {
+                logJson(result.data || result.error);
+            }
+        }
+
+        async function getProducts() {
+            const result = await apiCall('/api/products');
+            if (result.success) {
+                logJson(result.data);
+                // 更新商品选择下拉框
+                const select = document.getElementById('productSelect');
+                select.innerHTML = '<option value="">选择商品</option>';
+                result.data.products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.id;
+                    option.textContent = `${product.name} - ¥${product.price} (库存: ${product.stock})`;
+                    select.appendChild(option);
+                });
+            } else {
+                logJson(result.data || result.error);
+            }
+        }
+
+        async function addProduct() {
+            const name = document.getElementById('productName').value;
+            const description = document.getElementById('productDesc').value;
+            const price = parseFloat(document.getElementById('productPrice').value);
+            const stock = parseInt(document.getElementById('productStock').value);
+
+            const result = await apiCall('/api/products', {
+                method: 'POST',
+                body: JSON.stringify({ name, description, price, stock })
+            });
+
+            if (result.success) {
+                logJson(result.data);
+                alert('商品添加成功！');
+                getProducts(); // 刷新商品列表
+            } else {
+                logJson(result.data || result.error);
+            }
+        }
+
+        async function getOrders() {
+            const result = await apiCall('/api/orders');
+            if (result.success) {
+                logJson(result.data);
+            } else {
+                logJson(result.data || result.error);
+            }
+        }
+
+        async function createOrder() {
+            const productId = document.getElementById('productSelect').value;
+            const qty = parseInt(document.getElementById('orderQty').value);
+
+            if (!productId || !qty) {
+                alert('请选择商品并输入数量');
+                return;
+            }
+
+            const result = await apiCall('/api/orders', {
+                method: 'POST',
+                body: JSON.stringify({ items: [{ productId, qty }] })
+            });
+
+            if (result.success) {
+                logJson(result.data);
+                alert('订单创建成功！');
+                getOrders(); // 刷新订单列表
+            } else {
+                logJson(result.data || result.error);
+            }
+        }
+
+        async function ping() {
+            const result = await apiCall('/api/ping');
+            logJson(result.data || result.error);
+        }
+
+        async function getUsers() {
+            const result = await apiCall('/api/users');
+            if (result.success) {
+                logJson(result.data);
+            } else {
+                logJson(result.data || result.error);
+            }
+        }
+
+        function showAddProduct() {
+            const form = document.getElementById('addProductForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function showCreateOrder() {
+            const form = document.getElementById('createOrderForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            if (form.style.display === 'block') {
+                getProducts(); // 加载商品列表
+            }
+        }
+
+        function clearToken() {
+            currentToken = null;
+            localStorage.removeItem('token');
+            document.getElementById('token').style.display = 'none';
+            log('登录状态已清除');
+        }
+
+        // 页面加载时检查服务状态
+        window.onload = function() {
+            ping();
+        };
+    </script>
+</body>
+</html>

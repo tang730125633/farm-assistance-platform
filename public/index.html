@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基于 Web 的助农服务平台</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-seedling"></i>
+                <span>助农平台</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#home" class="nav-link">首页</a>
+                <a href="#products" class="nav-link">农产品</a>
+                <a href="#about" class="nav-link">关于我们</a>
+                <a href="#contact" class="nav-link">联系我们</a>
+                <a href="/orders.html" id="myOrdersLink" class="nav-link" style="display:none;">我的订单</a>
+            </div>
+            <div class="nav-auth">
+                <button id="cartBtn" class="btn btn-outline" style="display: none;">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span id="cartCount">0</span>
+                </button>
+                <button id="loginBtn" class="btn btn-outline">登录</button>
+                <button id="registerBtn" class="btn btn-primary">注册</button>
+                <div id="userMenu" class="user-menu" style="display: none;">
+                    <span id="userName"></span>
+                    <button id="adminBtn" class="btn btn-small" style="display: none;">管理</button>
+                    <button id="logoutBtn" class="btn btn-small">退出</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main>
+        <!-- 首页横幅 -->
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <h1>连接农民与消费者</h1>
+                <p>让新鲜的农产品直达您的餐桌</p>
+                <button class="btn btn-primary btn-large" onclick="scrollToProducts()">
+                    <i class="fas fa-shopping-cart"></i>
+                    开始购买
+                </button>
+            </div>
+            <div class="hero-image">
+                <i class="fas fa-tractor"></i>
+            </div>
+        </section>
+
+        <!-- 产品展示 -->
+        <section id="products" class="products-section">
+            <div class="container">
+                <h2>精选农产品</h2>
+                <div class="products-grid" id="productsGrid">
+                    <!-- 产品将通过 JavaScript 动态加载 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 关于我们 -->
+        <section id="about" class="about-section">
+            <div class="container">
+                <h2>关于我们</h2>
+                <div class="about-content">
+                    <div class="about-text">
+                        <p>我们致力于为农民和消费者搭建一个直接、透明的交易平台，让优质的农产品能够以合理的价格到达消费者手中，同时帮助农民获得更好的收益。</p>
+                        <div class="features">
+                            <div class="feature">
+                                <i class="fas fa-leaf"></i>
+                                <h3>绿色有机</h3>
+                                <p>严格筛选绿色有机农产品</p>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-truck"></i>
+                                <h3>快速配送</h3>
+                                <p>新鲜直达，保证品质</p>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-handshake"></i>
+                                <h3>直接交易</h3>
+                                <p>农民与消费者直接对接</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 联系我们 -->
+        <section id="contact" class="contact-section">
+            <div class="container">
+                <h2>联系我们</h2>
+                <div class="contact-content">
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>400-123-4567</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>support@farmassist.com</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>北京市朝阳区农业科技园</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 基于 Web 的助农服务平台. 保留所有权利.</p>
+        </div>
+    </footer>
+
+    <!-- 登录/注册模态框 -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="authForm">
+                <h2 id="authTitle">登录</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">登录</button>
+                </form>
+                <form id="registerForm" style="display: none;">
+                    <div class="form-group">
+                        <label for="regUsername">用户名</label>
+                        <input type="text" id="regUsername" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regEmail">邮箱</label>
+                        <input type="email" id="regEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">密码</label>
+                        <input type="password" id="regPassword" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regRole">角色</label>
+                        <select id="regRole" name="role" required>
+                            <option value="consumer">消费者</option>
+                            <option value="farmer">农民</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">注册</button>
+                </form>
+                <p id="authSwitch">
+                    <span id="switchText">还没有账号？</span>
+                    <a href="#" id="switchLink">立即注册</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 物流信息模态框 -->
+    <div id="logisticsModal" class="modal">
+        <div class="modal-content logistics-modal-content">
+            <div class="logistics-modal-header">
+                <h2><i class="fas fa-shipping-fast"></i> 订单物流跟踪</h2>
+                <span class="close" id="closeLogisticsModal">&times;</span>
+            </div>
+            <div id="logisticsContent">
+                <!-- 订单信息卡片 -->
+                <div class="order-info-card">
+                    <div class="order-info-row">
+                        <span class="order-label">订单号</span>
+                        <span class="order-value" id="modalOrderId">-</span>
+                    </div>
+                    <div class="order-info-row">
+                        <span class="order-label">订单状态</span>
+                        <span class="order-status" id="modalOrderStatus">-</span>
+                    </div>
+                    <div class="order-info-row">
+                        <span class="order-label">运单号</span>
+                        <span class="order-value" id="trackingNumber">-</span>
+                    </div>
+                </div>
+
+                <!-- 刷新区域 -->
+                <div class="refresh-section">
+                    <button id="modalRefreshBtn" class="refresh-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        刷新物流信息
+                    </button>
+                    <div class="last-update" id="modalLastUpdate">最后更新：-</div>
+                </div>
+
+                <!-- 物流时间轴 -->
+                <div id="modalLogisticsTimeline" class="logistics-timeline"></div>
+                
+                <!-- 空状态 -->
+                <div id="modalEmptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-truck"></i>
+                    <h3>暂无物流信息</h3>
+                    <p>订单已支付，正在等待商家发货，请耐心等待</p>
+                </div>
+
+                <!-- 加载状态 -->
+                <div id="modalLoadingState" class="loading-state" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">正在加载物流信息...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 购物车模态框 -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeCartModal">&times;</span>
+            <h2>购物车</h2>
+            <div id="cartContent">
+                <div id="cartItems">
+                    <!-- 购物车商品将通过 JavaScript 动态加载 -->
+                </div>
+                <div id="cartSummary">
+                    <div class="cart-total">
+                        <strong>总计: ¥<span id="cartTotal">0.00</span></strong>
+                    </div>
+                    <div class="cart-actions">
+                        <button id="clearCartBtn" class="btn btn-outline">清空购物车</button>
+                        <button id="checkoutBtn" class="btn btn-primary">结算</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 管理员发货模态框 -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeAdminModal">&times;</span>
+            <h2>管理员操作</h2>
+            <div id="adminContent">
+                <div id="orderList">
+                    <h3>待发货订单</h3>
+                    <div id="pendingOrders"></div>
+                </div>
+                <div id="logisticsManagement" style="display: none;">
+                    <h3>物流管理</h3>
+                    <div id="logisticsForm">
+                        <div class="form-group">
+                            <label for="logisticsStatus">状态</label>
+                            <select id="logisticsStatus">
+                                <option value="运输中">运输中</option>
+                                <option value="派送中">派送中</option>
+                                <option value="已签收">已签收</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="logisticsLocation">位置</label>
+                            <input type="text" id="logisticsLocation" placeholder="请输入位置信息">
+                        </div>
+                        <button onclick="addLogisticsTrace()" class="btn btn-primary">添加轨迹</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

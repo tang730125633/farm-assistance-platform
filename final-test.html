@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最终功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .warning { color: orange; font-weight: bold; }
+        .result {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.pass { background: #d4edda; color: #155724; }
+        .status.fail { background: #f8d7da; color: #721c24; }
+        .status.pending { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 助农平台功能测试</h1>
+        
+        <div class="test-section">
+            <h3>1. 基础连接测试</h3>
+            <button onclick="testConnection()">测试服务器连接</button>
+            <div id="connectionResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. 认证功能测试</h3>
+            <button onclick="testAuth()">测试登录注册</button>
+            <div id="authResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. 产品功能测试</h3>
+            <button onclick="testProducts()">测试产品加载</button>
+            <div id="productResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. 购物车功能测试</h3>
+            <button onclick="testCart()">测试购物车</button>
+            <div id="cartResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>5. 完整流程测试</h3>
+            <button onclick="testFullFlow()">测试完整购物流程</button>
+            <div id="flowResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>6. 主页面测试</h3>
+            <button onclick="openMainPage()">打开主页面</button>
+            <div id="mainPageResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        let testToken = null;
+        let testUser = null;
+
+        function showResult(elementId, message, type = 'info') {
+            const resultDiv = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+            resultDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>\n`;
+            resultDiv.scrollTop = resultDiv.scrollHeight;
+        }
+
+        async function testConnection() {
+            showResult('connectionResult', '🔌 开始测试服务器连接...');
+            
+            try {
+                const response = await fetch('/api');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult('connectionResult', '✅ 服务器连接正常', 'success');
+                    showResult('connectionResult', `📋 API信息: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    showResult('connectionResult', '❌ 服务器响应异常', 'error');
+                }
+            } catch (error) {
+                showResult('connectionResult', `❌ 连接失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAuth() {
+            showResult('authResult', '🔐 开始测试认证功能...');
+            
+            // 测试注册
+            const randomUsername = 'testuser' + Date.now();
+            showResult('authResult', `📝 测试注册用户: ${randomUsername}`);
+            
+            try {
+                const registerResponse = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: randomUsername,
+                        email: randomUsername + '@test.com',
+                        password: '123456',
+                        role: 'consumer'
+                    })
+                });
+                
+                const registerData = await registerResponse.json();
+                
+                if (registerResponse.ok) {
+                    showResult('authResult', '✅ 用户注册成功', 'success');
+                    
+                    // 测试登录
+                    showResult('authResult', '🔑 测试登录...');
+                    
+                    const loginResponse = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: randomUsername,
+                            password: '123456'
+                        })
+                    });
+                    
+                    const loginData = await loginResponse.json();
+                    
+                    if (loginResponse.ok) {
+                        testToken = loginData.token;
+                        testUser = loginData.user;
+                        showResult('authResult', '✅ 用户登录成功', 'success');
+                        showResult('authResult', `👤 用户信息: ${JSON.stringify(loginData.user, null, 2)}`);
+                    } else {
+                        showResult('authResult', `❌ 登录失败: ${JSON.stringify(loginData, null, 2)}`, 'error');
+                    }
+                } else {
+                    showResult('authResult', `❌ 注册失败: ${JSON.stringify(registerData, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult('authResult', `❌ 认证测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testProducts() {
+            showResult('productResult', '🛍️ 开始测试产品功能...');
+            
+            try {
+                const response = await fetch('/api/products');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult('productResult', '✅ 产品加载成功', 'success');
+                    showResult('productResult', `📦 产品数量: ${data.products ? data.products.length : 0}`);
+                    
+                    if (data.products && data.products.length > 0) {
+                        showResult('productResult', `📋 第一个产品: ${JSON.stringify(data.products[0], null, 2)}`);
+                    }
+                } else {
+                    showResult('productResult', `❌ 产品加载失败: ${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult('productResult', `❌ 产品测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCart() {
+            if (!testToken) {
+                showResult('cartResult', '⚠️ 请先完成认证测试', 'warning');
+                return;
+            }
+            
+            showResult('cartResult', '🛒 开始测试购物车功能...');
+            
+            try {
+                // 获取产品列表
+                const productsResponse = await fetch('/api/products');
+                const productsData = await productsResponse.json();
+                
+                if (!productsResponse.ok || !productsData.products || productsData.products.length === 0) {
+                    showResult('cartResult', '❌ 无法获取产品列表', 'error');
+                    return;
+                }
+                
+                const productId = productsData.products[0].id;
+                showResult('cartResult', `📦 使用产品ID: ${productId}`);
+                
+                // 添加到购物车
+                const addResponse = await fetch('/api/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${testToken}`
+                    },
+                    body: JSON.stringify({
+                        productId: productId,
+                        quantity: 2
+                    })
+                });
+                
+                const addData = await addResponse.json();
+                
+                if (addResponse.ok) {
+                    showResult('cartResult', '✅ 商品添加到购物车成功', 'success');
+                    
+                    // 查看购物车
+                    const cartResponse = await fetch('/api/cart', {
+                        headers: { 'Authorization': `Bearer ${testToken}` }
+                    });
+                    
+                    const cartData = await cartResponse.json();
+                    
+                    if (cartResponse.ok) {
+                        showResult('cartResult', '✅ 购物车查看成功', 'success');
+                        showResult('cartResult', `🛒 购物车内容: ${JSON.stringify(cartData, null, 2)}`);
+                    } else {
+                        showResult('cartResult', `❌ 购物车查看失败: ${JSON.stringify(cartData, null, 2)}`, 'error');
+                    }
+                } else {
+                    showResult('cartResult', `❌ 添加到购物车失败: ${JSON.stringify(addData, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult('cartResult', `❌ 购物车测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFullFlow() {
+            if (!testToken) {
+                showResult('flowResult', '⚠️ 请先完成认证测试', 'warning');
+                return;
+            }
+            
+            showResult('flowResult', '🔄 开始测试完整购物流程...');
+            
+            try {
+                // 1. 获取产品
+                showResult('flowResult', '1️⃣ 获取产品列表...');
+                const productsResponse = await fetch('/api/products');
+                const productsData = await productsResponse.json();
+                
+                if (!productsResponse.ok || !productsData.products || productsData.products.length === 0) {
+                    showResult('flowResult', '❌ 无法获取产品', 'error');
+                    return;
+                }
+                
+                const product = productsData.products[0];
+                showResult('flowResult', `✅ 获取产品: ${product.name}`);
+                
+                // 2. 添加到购物车
+                showResult('flowResult', '2️⃣ 添加到购物车...');
+                const addResponse = await fetch('/api/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${testToken}`
+                    },
+                    body: JSON.stringify({
+                        productId: product.id,
+                        quantity: 1
+                    })
+                });
+                
+                if (!addResponse.ok) {
+                    showResult('flowResult', '❌ 添加到购物车失败', 'error');
+                    return;
+                }
+                
+                showResult('flowResult', '✅ 商品已添加到购物车');
+                
+                // 3. 结算购物车
+                showResult('flowResult', '3️⃣ 结算购物车...');
+                const checkoutResponse = await fetch('/api/cart/checkout', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${testToken}` }
+                });
+                
+                const checkoutData = await checkoutResponse.json();
+                
+                if (checkoutResponse.ok) {
+                    showResult('flowResult', '✅ 订单创建成功', 'success');
+                    showResult('flowResult', `📋 订单信息: ${JSON.stringify(checkoutData, null, 2)}`);
+                } else {
+                    showResult('flowResult', `❌ 结算失败: ${JSON.stringify(checkoutData, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult('flowResult', `❌ 完整流程测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function openMainPage() {
+            showResult('mainPageResult', '🌐 打开主页面...');
+            
+            // 在新窗口中打开主页面
+            const newWindow = window.open('http://localhost:3000', '_blank');
+            
+            if (newWindow) {
+                showResult('mainPageResult', '✅ 主页面已在新窗口中打开', 'success');
+                showResult('mainPageResult', '💡 请在新窗口中测试登录注册功能');
+            } else {
+                showResult('mainPageResult', '❌ 无法打开新窗口，可能被浏览器阻止', 'error');
+                showResult('mainPageResult', '💡 请手动访问: http://localhost:3000');
+            }
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            showResult('connectionResult', '🚀 测试页面加载完成');
+            showResult('connectionResult', '💡 点击各个测试按钮开始测试');
+        });
+    </script>
+</body>
+</html>

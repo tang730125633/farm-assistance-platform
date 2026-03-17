@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物车测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>购物车功能测试</h1>
+    
+    <div class="test-section">
+        <h3>1. 登录测试</h3>
+        <button onclick="testLogin()">登录用户"小绿"</button>
+        <div id="loginResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. 添加商品到购物车</h3>
+        <button onclick="testAddToCart()">添加商品ID=1到购物车</button>
+        <div id="addResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. 查看购物车</h3>
+        <button onclick="testGetCart()">获取购物车内容</button>
+        <div id="cartResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>4. 清空购物车</h3>
+        <button onclick="testClearCart()">清空购物车</button>
+        <div id="clearResult"></div>
+    </div>
+
+    <script>
+        let token = null;
+        let userId = null;
+
+        async function testLogin() {
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: '小绿', password: '123456' })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    token = data.token;
+                    userId = data.user.id;
+                    document.getElementById('loginResult').innerHTML = 
+                        `<div class="success">登录成功！用户: ${data.user.username}, ID: ${data.user.id}</div>`;
+                } else {
+                    document.getElementById('loginResult').innerHTML = 
+                        `<div class="error">登录失败: ${data.message || data.msg}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = 
+                    `<div class="error">网络错误: ${error.message}</div>`;
+            }
+        }
+
+        async function testAddToCart() {
+            if (!token) {
+                document.getElementById('addResult').innerHTML = 
+                    '<div class="error">请先登录</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ productId: '1', quantity: 1 })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('addResult').innerHTML = 
+                        `<div class="success">添加成功: ${data.msg}</div>`;
+                } else {
+                    document.getElementById('addResult').innerHTML = 
+                        `<div class="error">添加失败: ${data.msg || data.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('addResult').innerHTML = 
+                    `<div class="error">网络错误: ${error.message}</div>`;
+            }
+        }
+
+        async function testGetCart() {
+            if (!token) {
+                document.getElementById('cartResult').innerHTML = 
+                    '<div class="error">请先登录</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/cart', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('cartResult').innerHTML = 
+                        `<div class="success">购物车内容: <pre>${JSON.stringify(data, null, 2)}</pre></div>`;
+                } else {
+                    document.getElementById('cartResult').innerHTML = 
+                        `<div class="error">获取失败: ${data.msg || data.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('cartResult').innerHTML = 
+                    `<div class="error">网络错误: ${error.message}</div>`;
+            }
+        }
+
+        async function testClearCart() {
+            if (!token) {
+                document.getElementById('clearResult').innerHTML = 
+                    '<div class="error">请先登录</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/cart/clear', {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('clearResult').innerHTML = 
+                        `<div class="success">清空成功: ${data.msg}</div>`;
+                } else {
+                    document.getElementById('clearResult').innerHTML = 
+                        `<div class="error">清空失败: ${data.msg || data.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('clearResult').innerHTML = 
+                    `<div class="error">网络错误: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

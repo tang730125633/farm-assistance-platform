@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调试页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; }
+        button { padding: 10px 20px; margin: 5px; }
+        .result { margin-top: 10px; padding: 10px; background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>调试页面</h1>
+    
+    <div class="test-section">
+        <h3>1. 检查DOM元素</h3>
+        <button onclick="checkElements()">检查元素</button>
+        <div id="elementResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. 测试登录按钮</h3>
+        <button id="testLoginBtn">测试登录按钮</button>
+        <div id="loginResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. 测试注册按钮</h3>
+        <button id="testRegisterBtn">测试注册按钮</button>
+        <div id="registerResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>4. 测试模态框</h3>
+        <button onclick="testModal()">测试模态框</button>
+        <div id="modalResult" class="result"></div>
+    </div>
+
+    <!-- 登录/注册模态框 -->
+    <div id="authModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div class="modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px;">
+            <span class="close" style="float: right; font-size: 24px; cursor: pointer;">&times;</span>
+            <h2 id="authTitle">登录</h2>
+            <form id="loginForm">
+                <div>
+                    <label>用户名</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div>
+                    <label>密码</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit">登录</button>
+            </form>
+            <form id="registerForm" style="display: none;">
+                <div>
+                    <label>用户名</label>
+                    <input type="text" id="regUsername" name="username" required>
+                </div>
+                <div>
+                    <label>邮箱</label>
+                    <input type="email" id="regEmail" name="email" required>
+                </div>
+                <div>
+                    <label>密码</label>
+                    <input type="password" id="regPassword" name="password" required>
+                </div>
+                <div>
+                    <label>角色</label>
+                    <select id="regRole" name="role" required>
+                        <option value="consumer">消费者</option>
+                        <option value="farmer">农民</option>
+                    </select>
+                </div>
+                <button type="submit">注册</button>
+            </form>
+            <p id="authSwitch">
+                <span id="switchText">还没有账号？</span>
+                <a href="#" id="switchLink">立即注册</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // 检查DOM元素
+        function checkElements() {
+            const result = document.getElementById('elementResult');
+            const elements = {
+                'loginBtn': document.getElementById('testLoginBtn'),
+                'registerBtn': document.getElementById('testRegisterBtn'),
+                'authModal': document.getElementById('authModal'),
+                'loginForm': document.getElementById('loginForm'),
+                'registerForm': document.getElementById('registerForm'),
+                'closeModal': document.querySelector('.close'),
+                'switchLink': document.getElementById('switchLink')
+            };
+            
+            let html = '<h4>DOM元素检查结果：</h4>';
+            for (const [name, element] of Object.entries(elements)) {
+                html += `<p>${name}: ${element ? '✅ 找到' : '❌ 未找到'}</p>`;
+            }
+            result.innerHTML = html;
+        }
+        
+        // 测试登录按钮
+        document.getElementById('testLoginBtn').addEventListener('click', function() {
+            const result = document.getElementById('loginResult');
+            result.innerHTML = '<p>✅ 登录按钮点击事件正常</p>';
+            showAuthModal('login');
+        });
+        
+        // 测试注册按钮
+        document.getElementById('testRegisterBtn').addEventListener('click', function() {
+            const result = document.getElementById('registerResult');
+            result.innerHTML = '<p>✅ 注册按钮点击事件正常</p>';
+            showAuthModal('register');
+        });
+        
+        // 显示认证模态框
+        function showAuthModal(type) {
+            const authModal = document.getElementById('authModal');
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const authTitle = document.getElementById('authTitle');
+            const switchText = document.getElementById('switchText');
+            const switchLink = document.getElementById('switchLink');
+            
+            authModal.style.display = 'block';
+            
+            if (type === 'login') {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                authTitle.textContent = '登录';
+                switchText.textContent = '还没有账号？';
+                switchLink.textContent = '立即注册';
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+                authTitle.textContent = '注册';
+                switchText.textContent = '已有账号？';
+                switchLink.textContent = '立即登录';
+            }
+        }
+        
+        // 隐藏认证模态框
+        function hideAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+        }
+        
+        // 测试模态框
+        function testModal() {
+            const result = document.getElementById('modalResult');
+            result.innerHTML = '<p>✅ 模态框功能正常</p>';
+        }
+        
+        // 设置事件监听器
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成');
+            
+            // 模态框关闭事件
+            document.querySelector('.close').addEventListener('click', hideAuthModal);
+            
+            // 点击模态框外部关闭
+            document.getElementById('authModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideAuthModal();
+                }
+            });
+            
+            // 切换登录/注册
+            document.getElementById('switchLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                const loginForm = document.getElementById('loginForm');
+                const registerForm = document.getElementById('registerForm');
+                const authTitle = document.getElementById('authTitle');
+                const switchText = document.getElementById('switchText');
+                const switchLink = document.getElementById('switchLink');
+                
+                if (loginForm.style.display === 'none') {
+                    showAuthModal('login');
+                } else {
+                    showAuthModal('register');
+                }
+            });
+            
+            // 表单提交事件
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('登录表单提交');
+            });
+            
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('注册表单提交');
+            });
+            
+            console.log('事件监听器设置完成');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "72d9c896-a9b1-4746-80d5-0c838940ff42",
+    "name": "1",
+    "description": "123",
+    "price": 1,
+    "stock": 968,
+    "unit": "克",
+    "image": "https://via.placeholder.com/400?text=产品图片",
+    "farmerId": "98e65c1a-0bfd-4179-ae90-aefff2fc0a69",
+    "createdAt": "2025-12-11T20:01:30.249Z",
+    "updatedAt": "2025-12-11T20:01:30.249Z"
+  },
+  {
+    "id": "aacb44b5-2eb7-4dc5-bc65-04e20202d73a",
+    "name": "2",
+    "description": "多转发",
+    "price": 10,
+    "stock": 9973,
+    "unit": "千克",
+    "image": "https://via.placeholder.com/400?text=产品图片",
+    "farmerId": "98e65c1a-0bfd-4179-ae90-aefff2fc0a69",
+    "createdAt": "2025-12-11T20:59:13.736Z",
+    "updatedAt": "2025-12-11T20:59:13.736Z"
+  },
+  {
+    "id": "d2713d18-20c8-48fd-8dad-a6ecac6be74a",
+    "name": "3",
+    "description": "发v啊",
+    "price": 30,
+    "stock": 9992,
+    "unit": "千克",
+    "image": "https://via.placeholder.com/400?text=产品图片",
+    "farmerId": "5f9a85fb-1b55-464a-848e-c7983659ac4b",
+    "createdAt": "2025-12-11T21:01:09.774Z",
+    "updatedAt": "2025-12-11T21:01:09.774Z"
+  },
+  {
+    "id": "0a62c73a-535e-4ace-8487-d81fd934b8b0",
+    "name": "苹果",
+    "description": "这是一个苹果",
+    "price": 10,
+    "stock": 99,
+    "unit": "千克",
+    "image": "/images/products/1765487741537-d55e511a-ce7b-4782-ac36-e99939af54f3.png",
+    "farmerId": "5f9a85fb-1b55-464a-848e-c7983659ac4b",
+    "createdAt": "2025-12-11T21:15:41.539Z",
+    "updatedAt": "2025-12-11T21:15:41.539Z"
+  },
+  {
+    "id": "26f4dcaf-8aa3-4bfe-9d8a-80c4ee3d80cf",
+    "name": "西瓜",
+    "description": "沙瓤瓜",
+    "price": 2,
+    "stock": 1990,
+    "unit": "千克",
+    "image": "/images/products/1765642555168-6fc23797-e2f4-4ea1-8685-ab24af7f7aea.jpg",
+    "farmerId": "ace99931-7677-4599-a1d2-80b8a8d85610",
+    "createdAt": "2025-12-13T16:15:55.173Z",
+    "updatedAt": "2025-12-13T16:15:55.173Z"
+  },
+  {
+    "id": "d6b8aa91-3442-43bd-98c5-116de1a5a1b5",
+    "name": "蘑菇",
+    "description": "新鲜美味",
+    "price": 9,
+    "stock": 65,
+    "unit": "千克",
+    "image": "/images/products/1765683547520-72e279d7-2f8f-46e2-bffb-5ee142eefcdb.jpg",
+    "farmerId": "92e9900d-7786-4671-bddb-57c81c00b1a0",
+    "createdAt": "2025-12-14T03:39:07.548Z",
+    "updatedAt": "2025-12-14T03:39:07.548Z"
+  },
+  {
+    "id": "8bd93052-d67b-4abb-aa72-6a96cbd2c6a4",
+    "name": "杏鲍菇",
+    "description": "多汁美味",
+    "price": 20,
+    "stock": 19,
+    "unit": "千克",
+    "image": "/images/products/1766238612717-f00536ff-e371-4bf5-a2ee-ac664c16976e.jpg",
+    "farmerId": "92e9900d-7786-4671-bddb-57c81c00b1a0",
+    "createdAt": "2025-12-20T13:50:12.723Z",
+    "updatedAt": "2025-12-20T13:50:12.723Z"
+  }
+]

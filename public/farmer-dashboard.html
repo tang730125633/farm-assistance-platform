@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>农民管理后台 - 助农平台</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .dashboard-header h1 {
+            margin: 0 0 10px 0;
+        }
+        .dashboard-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .products-table {
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .products-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .products-table th {
+            background: #f5f5f5;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+        }
+        .products-table td {
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .products-table img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+        .btn-edit {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+        .orders-list {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .order-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .order-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-paid {
+            background: #d4edda;
+            color: #155724;
+        }
+        .order-items {
+            margin-top: 15px;
+        }
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-seedling"></i>
+                <span>助农平台 - 农民后台</span>
+            </div>
+            <div class="nav-menu">
+                <a href="/index.html" class="nav-link">返回首页</a>
+            </div>
+            <div class="nav-auth">
+                <div id="userMenu" class="user-menu">
+                    <span id="userName"></span>
+                    <button id="logoutBtn" class="btn btn-small">退出</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-tractor"></i> 农民管理后台</h1>
+            <p>管理您的商品和订单</p>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3><i class="fas fa-box"></i> 商品总数</h3>
+                <div class="value" id="totalProducts">0</div>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-shopping-cart"></i> 订单数量</h3>
+                <div class="value" id="totalOrders">0</div>
+                <small style="color: #666; font-size: 12px;">
+                    已付款 <span id="paidOrdersCount" style="color: #28a745; font-weight: 600;">0</span> |
+                    待付款 <span id="pendingOrdersCount" style="color: #ffc107; font-weight: 600;">0</span>
+                </small>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white;">
+                <h3 style="color: white;"><i class="fas fa-check-circle"></i> 已到账</h3>
+                <div class="value" id="paidEarnings" style="color: white;">¥0.00</div>
+                <small style="opacity: 0.9;">已支付订单收入</small>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: white;">
+                <h3 style="color: white;"><i class="fas fa-clock"></i> 待到账</h3>
+                <div class="value" id="pendingEarnings" style="color: white;">¥0.00</div>
+                <small style="opacity: 0.9;">待支付订单金额</small>
+            </div>
+        </div>
+
+        <!-- 标签页 -->
+        <div class="dashboard-tabs">
+            <button class="tab-btn active" data-tab="products">我的商品</button>
+            <button class="tab-btn" data-tab="add-product">上架新商品</button>
+            <button class="tab-btn" data-tab="orders">我的订单</button>
+        </div>
+
+        <!-- 商品列表 -->
+        <div id="products-tab" class="tab-content active">
+            <div class="products-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>图片</th>
+                            <th>商品名称</th>
+                            <th>价格</th>
+                            <th>库存</th>
+                            <th>单位</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody">
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <i class="fas fa-box-open"></i>
+                                <p>暂无商品</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 上架新商品 -->
+        <div id="add-product-tab" class="tab-content">
+            <div class="form-card">
+                <h2><i class="fas fa-plus-circle"></i> 上架新商品</h2>
+                <form id="addProductForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="productName">商品名称 *</label>
+                            <input type="text" id="productName" required placeholder="例如：有机西红柿">
+                        </div>
+                        <div class="form-group">
+                            <label for="productPrice">价格 (元) *</label>
+                            <input type="number" id="productPrice" step="0.01" min="0" required placeholder="例如：8.50">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="productStock">库存数量 *</label>
+                            <input type="number" id="productStock" min="0" required placeholder="例如：100">
+                        </div>
+                        <div class="form-group">
+                            <label for="productUnit">单位 *</label>
+                            <select id="productUnit" required>
+                                <option value="千克">千克</option>
+                                <option value="克">克</option>
+                                <option value="斤">斤</option>
+                                <option value="个">个</option>
+                                <option value="袋">袋</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="productDescription">商品描述 *</label>
+                        <textarea id="productDescription" required placeholder="详细描述您的商品..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="productImage">商品图片</label>
+                        <input type="file" id="productImage" accept="image/*">
+                        <small style="color: #666;">支持 jpg, png, gif, webp 格式，最大 5MB</small>
+                        <div id="imagePreview" style="margin-top: 10px; display: none;">
+                            <img id="previewImg" src="" alt="预览图" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #ddd;">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> 上架商品
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 订单列表 -->
+        <div id="orders-tab" class="tab-content">
+            <div class="orders-list">
+                <h2><i class="fas fa-receipt"></i> 我的订单</h2>
+                <div id="ordersContainer">
+                    <div class="empty-state">
+                        <i class="fas fa-shopping-bag"></i>
+                        <p>暂无订单</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 编辑商品模态框 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeEditModal">&times;</span>
+            <h2>编辑商品</h2>
+            <form id="editProductForm">
+                <input type="hidden" id="editProductId">
+                <div class="form-group">
+                    <label for="editProductName">商品名称</label>
+                    <input type="text" id="editProductName" required>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="editProductPrice">价格 (元)</label>
+                        <input type="number" id="editProductPrice" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProductStock">库存</label>
+                        <input type="number" id="editProductStock" min="0" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editProductUnit">单位</label>
+                    <select id="editProductUnit" required>
+                        <option value="千克">千克</option>
+                        <option value="克">克</option>
+                        <option value="斤">斤</option>
+                        <option value="个">个</option>
+                        <option value="袋">袋</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editProductDescription">商品描述</label>
+                    <textarea id="editProductDescription" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editProductImage">更换商品图片</label>
+                    <input type="file" id="editProductImage" accept="image/*">
+                    <small style="color: #666;">可选，不选择则保持原图片</small>
+                    <div id="editImagePreview" style="margin-top: 10px; display: none;">
+                        <img id="editPreviewImg" src="" alt="预览图" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #ddd;">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">保存修改</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/farmer-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+[
+  {
+    "id": "d84f0326-2aef-44ed-a771-3447cf9daecd",
+    "farmerId": "98e65c1a-0bfd-4179-ae90-aefff2fc0a69",
+    "balance": 297,
+    "totalIncome": 297,
+    "totalWithdrawal": 0,
+    "transactions": [
+      {
+        "id": "e27649d1-ad95-4dd7-a729-647e0de1eadb",
+        "type": "sale",
+        "amount": 5,
+        "relatedId": "29f32804-4fb4-46a7-bbff-4c31b0e3eaeb",
+        "description": "订单 fa360c97-13dc-45a7-a3f3-6e562e27a25a 销售收入",
+        "balance": 5,
+        "createdAt": "2025-12-11T20:28:32.768Z"
+      },
+      {
+        "id": "54ea592b-2966-4e57-9c9c-e463b029228b",
+        "type": "sale",
+        "amount": 5,
+        "relatedId": "3c44416d-44e6-4f9b-bd7d-8cda553d2bf8",
+        "description": "订单 6069dfaa-d850-4b9e-bab3-b91155f1497b 销售收入",
+        "balance": 10,
+        "createdAt": "2025-12-11T20:28:32.769Z"
+      },
+      {
+        "id": "d35469b9-f2ac-4d5f-b907-8e4a7dc1b86d",
+        "type": "sale",
+        "amount": 5,
+        "relatedId": "9d1e2586-d971-435c-879e-959131007d13",
+        "description": "订单 00321add-ac23-4c8f-9690-330dd70ef78f 销售收入",
+        "balance": 15,
+        "createdAt": "2025-12-11T20:28:32.770Z"
+      },
+      {
+        "id": "acd4b6b8-40c2-4d1d-9475-4eecf6dfcc99",
+        "type": "sale",
+        "amount": 4,
+        "relatedId": "a7c2f185-01f3-47c3-b189-2120d428d72c",
+        "description": "订单 eed0fa7a-b449-43fc-9ace-742e4e8e683b 销售收入",
+        "balance": 19,
+        "createdAt": "2025-12-11T20:28:32.770Z"
+      },
+      {
+        "id": "d7c9d567-cbb4-4e9e-a5b9-ed0190ea8822",
+        "type": "sale",
+        "amount": 4,
+        "relatedId": "3ab41a23-d8a2-4684-948c-724b87525c70",
+        "description": "订单 d820b842-b67e-4ff5-aedf-e18b2332dd1e 销售收入",
+        "balance": 23,
+        "createdAt": "2025-12-11T20:58:33.901Z"
+      },
+      {
+        "id": "a411287c-0ccb-4038-846b-bd5df9955163",
+        "type": "sale",
+        "amount": 200,
+        "relatedId": "8df21ab4-0f87-4cde-ba63-db5a11305b06",
+        "description": "订单 413bfc9c-a317-4ab4-9ef0-47eec1ea7dcb 销售收入",
+        "balance": 223,
+        "createdAt": "2025-12-11T20:59:50.205Z"
+      },
+      {
+        "id": "8790dcbd-20b3-4282-a688-ec902f7db1a3",
+        "type": "sale",
+        "amount": 44,
+        "relatedId": "62e2eddb-71f3-409b-919d-df61d3f0cb1c",
+        "description": "订单 92665876-30a7-46b2-b5ad-d892d32b8ddc 销售收入",
+        "balance": 267,
+        "createdAt": "2025-12-11T21:01:49.260Z"
+      },
+      {
+        "id": "4803f831-7365-4d50-b525-d0baa9732b61",
+        "type": "sale",
+        "amount": 10,
+        "relatedId": "f3e7a63b-c454-41c8-a855-9f7d1b68b601",
+        "description": "订单 1cff1f49-0878-4439-aa14-0bd2717793e9 销售收入",
+        "balance": 277,
+        "createdAt": "2026-03-10T11:53:16.808Z"
+      },
+      {
+        "id": "e2f3c98e-7d23-4fb4-998b-d1c03f2c2e73",
+        "type": "sale",
+        "amount": 10,
+        "relatedId": "6a3b5e62-36dc-4fb1-ac40-8ac2daeff40f",
+        "description": "订单 e3c53236-a853-48f6-8a2a-b4c234ea0385 销售收入",
+        "balance": 287,
+        "createdAt": "2026-03-10T11:55:21.741Z"
+      },
+      {
+        "id": "81de3b6f-9172-4db1-bcba-4f88f9720f75",
+        "type": "sale",
+        "amount": 10,
+        "relatedId": "76b8971b-cdd9-4972-8920-851d9caff734",
+        "description": "订单 e9588658-3384-45a8-987a-de8518416881 销售收入",
+        "balance": 297,
+        "createdAt": "2026-03-11T14:09:29.653Z"
+      }
+    ],
+    "createdAt": "2025-12-11T20:28:32.768Z",
+    "updatedAt": "2026-03-11T14:09:29.653Z"
+  },
+  {
+    "id": "f719c69e-87b3-4f2b-8e82-679e47bc6812",
+    "farmerId": "5f9a85fb-1b55-464a-848e-c7983659ac4b",
+    "balance": 250,
+    "totalIncome": 250,
+    "totalWithdrawal": 0,
+    "transactions": [
+      {
+        "id": "78459651-86a1-4352-bdec-843367c52022",
+        "type": "sale",
+        "amount": 240,
+        "relatedId": "1b279da2-cf9d-4c1a-b0c8-750d827fd552",
+        "description": "订单 92665876-30a7-46b2-b5ad-d892d32b8ddc 销售收入",
+        "balance": 240,
+        "createdAt": "2025-12-11T21:01:49.259Z"
+      },
+      {
+        "id": "3be2c13b-877f-4bf1-90af-193feede7064",
+        "type": "sale",
+        "amount": 10,
+        "relatedId": "11f8153a-aaec-44a1-94db-b4b8cbb91d1d",
+        "description": "订单 5b3bd5aa-f295-4fbe-9eae-b6f5d93bcbc7 销售收入",
+        "balance": 250,
+        "createdAt": "2026-03-15T14:23:21.552Z"
+      }
+    ],
+    "createdAt": "2025-12-11T21:01:49.259Z",
+    "updatedAt": "2026-03-15T14:23:21.552Z"
+  },
+  {
+    "id": "527482c3-5792-45da-8eb8-490fe37f2559",
+    "farmerId": "ace99931-7677-4599-a1d2-80b8a8d85610",
+    "balance": 458,
+    "totalIncome": 458,
+    "totalWithdrawal": 0,
+    "transactions": [
+      {
+        "id": "2461783b-39d8-4ae2-83cc-e5abcdf65cb8",
+        "type": "sale",
+        "amount": 444,
+        "relatedId": "5c2bb406-5b90-44b0-bbdf-77a7cedb6dff",
+        "description": "订单 5dd6e488-a51f-40d0-8080-8dabc38e0afb 销售收入",
+        "balance": 444,
+        "createdAt": "2025-12-13T15:59:20.096Z"
+      },
+      {
+        "id": "05ddd3da-bda4-41d7-b5b6-3778b545f0ab",
+        "type": "sale",
+        "amount": 2,
+        "relatedId": "58ea7816-cf09-44cd-a5cd-73fc32da0410",
+        "description": "订单 4fb6ada0-1f84-4f80-b561-c7db99b49075 销售收入",
+        "balance": 446,
+        "createdAt": "2025-12-14T03:41:44.199Z"
+      },
+      {
+        "id": "5c8fc472-1dbc-452b-abb2-cb9a673fccbb",
+        "type": "sale",
+        "amount": 4,
+        "relatedId": "01bd2e6a-46e6-4e65-a344-71721275fd44",
+        "description": "订单 7e05a592-4ee3-4557-9f60-45c730ee4a99 销售收入",
+        "balance": 450,
+        "createdAt": "2025-12-14T03:45:17.582Z"
+      },
+      {
+        "id": "6715f6ab-c623-4efe-96e9-9599e19810ab",
+        "type": "sale",
+        "amount": 2,
+        "relatedId": "0316b039-2e3a-4c99-9b2c-ab470904b167",
+        "description": "订单 8237c5ff-7a06-467f-987b-df498e089f1b 销售收入",
+        "balance": 452,
+        "createdAt": "2025-12-20T13:48:18.829Z"
+      },
+      {
+        "id": "410fa74b-069a-4663-8168-ac5f0228cab2",
+        "type": "sale",
+        "amount": 2,
+        "relatedId": "e7a11df0-b76d-446c-beb2-b809739e432d",
+        "description": "订单 03812884-37eb-46d8-a7a0-b5104ebf569c 销售收入",
+        "balance": 454,
+        "createdAt": "2025-12-20T13:52:54.698Z"
+      },
+      {
+        "id": "94d4c446-5b0e-4ded-b50f-a0aad2e2fd1f",
+        "type": "sale",
+        "amount": 2,
+        "relatedId": "cbf4b32b-e4a6-40c6-b24e-e23689d52098",
+        "description": "订单 535ce135-bc74-4440-b3a1-a7c0d30db0d4 销售收入",
+        "balance": 456,
+        "createdAt": "2025-12-20T14:11:40.683Z"
+      },
+      {
+        "id": "281fdda5-8ba7-4d0e-9d06-da43a67a24a1",
+        "type": "sale",
+        "amount": 2,
+        "relatedId": "1a2cb604-0545-4620-ba6d-5f5bca62a0ad",
+        "description": "订单 1be3bad5-21de-4cee-84eb-08030278e8cf 销售收入",
+        "balance": 458,
+        "createdAt": "2026-03-11T14:09:47.858Z"
+      }
+    ],
+    "createdAt": "2025-12-13T15:59:20.096Z",
+    "updatedAt": "2026-03-11T14:09:47.859Z"
+  },
+  {
+    "id": "c65ad08b-305d-4378-8a27-e7a55207aeea",
+    "farmerId": "92e9900d-7786-4671-bddb-57c81c00b1a0",
+    "balance": 38,
+    "totalIncome": 38,
+    "totalWithdrawal": 0,
+    "transactions": [
+      {
+        "id": "2aa3533a-8f8a-49ba-8575-510a4cd4713b",
+        "type": "sale",
+        "amount": 20,
+        "relatedId": "b13d1362-e5ab-4ef5-8b5c-73c3112480ec",
+        "description": "订单 8ad0c43c-6192-46d0-bb5d-7aad07e15094 销售收入",
+        "balance": 20,
+        "createdAt": "2025-12-20T13:50:34.988Z"
+      },
+      {
+        "id": "279c6bd6-b21f-4699-9f40-72f073174ddc",
+        "type": "sale",
+        "amount": 9,
+        "relatedId": "24a44e64-d411-4a1d-b17a-22100f971939",
+        "description": "订单 9bd47df0-5df5-4439-936c-f51780e322bc 销售收入",
+        "balance": 29,
+        "createdAt": "2026-03-10T11:55:01.405Z"
+      },
+      {
+        "id": "f8581457-e094-4ede-848f-199dbb3dac7e",
+        "type": "sale",
+        "amount": 9,
+        "relatedId": "f6e85e30-e93e-454a-bb2b-96384dd9cf46",
+        "description": "订单 9577fdda-6ea2-4fab-abc1-77c3074bb825 销售收入",
+        "balance": 38,
+        "createdAt": "2026-03-10T11:55:32.222Z"
+      }
+    ],
+    "createdAt": "2025-12-20T13:50:34.988Z",
+    "updatedAt": "2026-03-10T11:55:32.222Z"
+  }
+]

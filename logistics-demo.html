@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物流功能演示 - 助农平台</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c5530;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #2c5530;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .admin-btn {
+            background-color: #2196F3;
+        }
+        .admin-btn:hover {
+            background-color: #1976D2;
+        }
+        .logistics-btn {
+            background-color: #FF9800;
+        }
+        .logistics-btn:hover {
+            background-color: #F57C00;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+        .result {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .timeline-item {
+            display: flex;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .timeline-item:not(:last-child)::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 30px;
+            bottom: -1.5rem;
+            width: 2px;
+            background: #e0e0e0;
+        }
+        .timeline-marker {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #4a7c59;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        .timeline-content {
+            flex: 1;
+            padding-top: 2px;
+        }
+        .timeline-status {
+            font-weight: bold;
+            color: #2c5530;
+            margin-bottom: 0.25rem;
+        }
+        .timeline-location {
+            color: #666;
+            margin-bottom: 0.25rem;
+        }
+        .timeline-time {
+            font-size: 0.8rem;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚚 物流功能演示 - 助农平台</h1>
+        
+        <div class="section">
+            <h3>1. 用户认证</h3>
+            <input type="text" id="username" placeholder="用户名" value="admin">
+            <input type="password" id="password" placeholder="密码" value="admin123">
+            <br><br>
+            <button onclick="login()">管理员登录</button>
+            <button onclick="loginConsumer()">消费者登录</button>
+            <div id="userInfo" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h3>2. 管理员发货操作</h3>
+            <button onclick="shipOrder()" class="admin-btn">发货订单</button>
+            <button onclick="addTrace()" class="admin-btn">添加轨迹</button>
+            <button onclick="finishOrder()" class="admin-btn">完成订单</button>
+            <div id="adminResult" class="result">点击按钮开始操作...</div>
+        </div>
+
+        <div class="section">
+            <h3>3. 消费者查看物流</h3>
+            <button onclick="viewLogistics()" class="logistics-btn">查看物流信息</button>
+            <div id="logisticsResult" class="result">点击按钮查看物流...</div>
+        </div>
+
+        <div class="section">
+            <h3>4. 物流轨迹展示</h3>
+            <div id="timelineContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentToken = null;
+        let currentUser = null;
+        const ORDER_ID = '7e3069b9-b250-40aa-8ee0-57a69bb18fe2';
+
+        function showResult(elementId, message, isError = false) {
+            const resultDiv = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = isError ? 'error' : 'success';
+            resultDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>\n`;
+            resultDiv.scrollTop = resultDiv.scrollHeight;
+        }
+
+        async function apiCall(url, options = {}) {
+            try {
+                const fullUrl = url.startsWith('/api/') ? `http://localhost:3000${url}` : url;
+                showResult('adminResult', `正在请求: ${fullUrl}`);
+                
+                const response = await fetch(fullUrl, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(currentToken && { 'Authorization': `Bearer ${currentToken}` }),
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult('adminResult', `✅ 成功: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    showResult('adminResult', `❌ 错误: ${JSON.stringify(data, null, 2)}`, true);
+                }
+                
+                return { success: response.ok, data };
+            } catch (error) {
+                showResult('adminResult', `❌ 网络错误: ${error.message}`, true);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const result = await apiCall('/api/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ username, password })
+            });
+            
+            if (result.success) {
+                currentToken = result.data.token;
+                currentUser = result.data.user;
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('userInfo').textContent = `已登录: ${currentUser.username} (${currentUser.role})`;
+                showResult('adminResult', '✅ 管理员登录成功！');
+            }
+        }
+
+        async function loginConsumer() {
+            const result = await apiCall('/api/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ username: 'testuser1757760278592', password: '123456' })
+            });
+            
+            if (result.success) {
+                currentToken = result.data.token;
+                currentUser = result.data.user;
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('userInfo').textContent = `已登录: ${currentUser.username} (${currentUser.role})`;
+                showResult('adminResult', '✅ 消费者登录成功！');
+            }
+        }
+
+        async function shipOrder() {
+            showResult('adminResult', '🚚 开始发货操作...');
+            const result = await apiCall(`/api/shipments/${ORDER_ID}/ship`, {
+                method: 'POST'
+            });
+            
+            if (result.success) {
+                showResult('adminResult', '✅ 发货成功！订单状态已更新为 shipped');
+            }
+        }
+
+        async function addTrace() {
+            const traces = [
+                { status: '运输中', location: '北京转运中心' },
+                { status: '派送中', location: '上海配送站' }
+            ];
+            
+            for (const trace of traces) {
+                showResult('adminResult', `📍 添加轨迹: ${trace.status} - ${trace.location}`);
+                const result = await apiCall(`/api/shipments/${ORDER_ID}/push`, {
+                    method: 'POST',
+                    body: JSON.stringify(trace)
+                });
+                
+                if (result.success) {
+                    showResult('adminResult', `✅ 轨迹添加成功: ${trace.status}`);
+                }
+                
+                // 等待1秒再添加下一个轨迹
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+
+        async function finishOrder() {
+            showResult('adminResult', '🏁 完成订单...');
+            const result = await apiCall(`/api/shipments/${ORDER_ID}/push`, {
+                method: 'POST',
+                body: JSON.stringify({ status: '已签收', location: '用户地址' })
+            });
+            
+            if (result.success) {
+                showResult('adminResult', '✅ 订单已完成！状态已更新为 finished');
+            }
+        }
+
+        async function viewLogistics() {
+            showResult('logisticsResult', '🔍 查看物流信息...');
+            const result = await apiCall(`/api/shipments/${ORDER_ID}`);
+            
+            if (result.success) {
+                const shipment = result.data;
+                showResult('logisticsResult', `✅ 物流信息获取成功！运单号: ${shipment.trackingNo}`);
+                displayTimeline(shipment.traces);
+            }
+        }
+
+        function displayTimeline(traces) {
+            const container = document.getElementById('timelineContainer');
+            container.innerHTML = traces.map((trace, index) => `
+                <div class="timeline-item">
+                    <div class="timeline-marker">${index + 1}</div>
+                    <div class="timeline-content">
+                        <div class="timeline-status">${trace.status}</div>
+                        <div class="timeline-location">${trace.location}</div>
+                        <div class="timeline-time">${new Date(trace.ts).toLocaleString()}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 页面加载时自动登录管理员
+        window.onload = function() {
+            showResult('adminResult', '🚀 页面加载完成，开始演示...');
+            login();
+        };
+    </script>
+</body>
+</html>

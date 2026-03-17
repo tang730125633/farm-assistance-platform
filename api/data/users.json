@@ -1,0 +1,74 @@
+[
+  {
+    "id": "98e65c1a-0bfd-4179-ae90-aefff2fc0a69",
+    "username": "111111",
+    "email": "tangzelong1@gmail.com",
+    "password": "$2a$10$Nu1Rn.cNcgm09d0WEmgHNuK0zZqkbuKF5z3y1ZOR0fn2w35iSNKWS",
+    "role": "farmer",
+    "createdAt": "2025-12-11T20:01:00.005Z",
+    "updatedAt": "2025-12-11T20:01:00.005Z"
+  },
+  {
+    "id": "b3339551-6be0-4c36-9125-9eecffd7a29c",
+    "username": "222222",
+    "email": "tangzelong@gmail.com",
+    "password": "$2a$10$BNMKk78Jw9YoW5FHG6ACDeL6JsBqY21OsFDA7V5P0EmVwuLW/CHi2",
+    "role": "consumer",
+    "createdAt": "2025-12-11T20:01:50.997Z",
+    "updatedAt": "2025-12-11T20:01:50.997Z"
+  },
+  {
+    "id": "5f9a85fb-1b55-464a-848e-c7983659ac4b",
+    "username": "333333",
+    "email": "DellHuffthutrrsse@gmx.pt",
+    "password": "$2a$10$ONG1uvF6yAw59S43Rejd9.Goat65h/5SH9W7zeDUuvPODjXIMWz7S",
+    "role": "farmer",
+    "createdAt": "2025-12-11T21:00:47.021Z",
+    "updatedAt": "2025-12-11T21:00:47.021Z"
+  },
+  {
+    "id": "fd335987-033a-4f7c-984f-ebc5f4ee22ab",
+    "username": "444444",
+    "email": "Kinsey_Hansonm1itrrsse@gmx.co.in",
+    "password": "$2a$10$kUas9aKsgWdXroT7dd7AL.WiACi4d2jJT9vstosOwHTvELbJRM//i",
+    "role": "consumer",
+    "createdAt": "2025-12-11T21:01:25.034Z",
+    "updatedAt": "2025-12-11T21:01:25.034Z"
+  },
+  {
+    "id": "ace99931-7677-4599-a1d2-80b8a8d85610",
+    "username": "1111111",
+    "email": "111111@gmail.com",
+    "password": "$2a$10$wMeiitUPQvFaS8uAkcVQQOWBmv4HgiQuKh5Nv4YysVaOmr1eRhktC",
+    "role": "farmer",
+    "createdAt": "2025-12-13T15:57:51.751Z",
+    "updatedAt": "2025-12-13T15:57:51.751Z"
+  },
+  {
+    "id": "5c4321e3-1747-42bb-8d9a-3394456be17d",
+    "username": "2222222",
+    "email": "3592371465@qq.com",
+    "password": "$2a$10$QUcsrFvWZGF5MEgjHg7L1.rfEacA1Nuw/QKNd2JnBpScy3yO3lsJ.",
+    "role": "consumer",
+    "createdAt": "2025-12-13T15:58:45.391Z",
+    "updatedAt": "2025-12-13T15:58:45.391Z"
+  },
+  {
+    "id": "4ab56412-990e-46ae-8d59-94498de3d2c9",
+    "username": "000000",
+    "email": "3176620188@qq.com",
+    "password": "$2a$10$r9SEHAm0d7Ooc7JL.bn2cO7mf.XKCVvUiehAPqaMbp0gnM1LdsCV2",
+    "role": "consumer",
+    "createdAt": "2025-12-13T16:18:16.136Z",
+    "updatedAt": "2025-12-13T16:18:16.136Z"
+  },
+  {
+    "id": "92e9900d-7786-4671-bddb-57c81c00b1a0",
+    "username": "999999",
+    "email": "3176620155@qq.com",
+    "password": "$2a$10$GX9vjBW2BlgbxmVoWWlwkuGvDV6jvtSZ7RqxjOIfOdxXcW6CX3iKK",
+    "role": "farmer",
+    "createdAt": "2025-12-13T16:21:14.461Z",
+    "updatedAt": "2025-12-13T16:21:14.461Z"
+  }
+]

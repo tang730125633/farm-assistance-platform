@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单操作提示 - 助农平台</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* 订单提示页面专用样式 */
+        .notifications-container {
+            max-width: 1200px;
+            margin: 100px auto 40px;
+            padding: 0 20px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .notifications-header {
+            background: linear-gradient(135deg, #2c5530, #4a7c59);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .notifications-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .notifications-header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .notifications-content {
+            padding: 40px;
+        }
+
+        .notification-section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: #2c5530;
+            margin-bottom: 30px;
+            font-weight: 600;
+            border-bottom: 3px solid #2c5530;
+            padding-bottom: 10px;
+        }
+
+        .notification-demo {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+            position: relative;
+            min-height: 200px;
+        }
+
+        .demo-title {
+            font-size: 1.2rem;
+            color: #495057;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        /* 成功提示样式 */
+        .success-notification {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border: 2px solid #28a745;
+            border-radius: 12px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+            animation: slideInRight 0.5s ease-out;
+        }
+
+        .success-icon {
+            background: #28a745;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .success-content {
+            flex: 1;
+        }
+
+        .success-title {
+            font-size: 1.4rem;
+            color: #155724;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .success-message {
+            color: #155724;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .success-details {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* 错误提示样式 */
+        .error-notification {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border: 2px solid #dc3545;
+            border-radius: 12px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+            animation: slideInRight 0.5s ease-out;
+        }
+
+        .error-icon {
+            background: #dc3545;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .error-content {
+            flex: 1;
+        }
+
+        .error-title {
+            font-size: 1.4rem;
+            color: #721c24;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .error-message {
+            color: #721c24;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .error-details {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* 警告提示样式 */
+        .warning-notification {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+            animation: slideInRight 0.5s ease-out;
+        }
+
+        .warning-icon {
+            background: #ffc107;
+            color: #212529;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .warning-content {
+            flex: 1;
+        }
+
+        .warning-title {
+            font-size: 1.4rem;
+            color: #856404;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .warning-message {
+            color: #856404;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .warning-details {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* 信息提示样式 */
+        .info-notification {
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border: 2px solid #17a2b8;
+            border-radius: 12px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(23, 162, 184, 0.2);
+            animation: slideInRight 0.5s ease-out;
+        }
+
+        .info-icon {
+            background: #17a2b8;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .info-content {
+            flex: 1;
+        }
+
+        .info-title {
+            font-size: 1.4rem;
+            color: #0c5460;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .info-message {
+            color: #0c5460;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .info-details {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* 操作按钮 */
+        .notification-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .btn-action {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        /* 动画效果 */
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* 订单信息卡片 */
+        .order-info-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .order-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .order-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .order-label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .order-value {
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .order-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .notifications-content {
+                padding: 20px;
+            }
+            
+            .success-notification,
+            .error-notification,
+            .warning-notification,
+            .info-notification {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .success-icon,
+            .error-icon,
+            .warning-icon,
+            .info-icon {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            .notification-actions {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-seedling"></i>
+                <span>助农平台</span>
+            </div>
+            <div class="nav-menu">
+                <a href="/" class="nav-link">首页</a>
+                <a href="#products" class="nav-link">农产品</a>
+                <a href="#about" class="nav-link">关于我们</a>
+                <a href="#contact" class="nav-link">联系我们</a>
+            </div>
+            <div class="nav-auth">
+                <button class="btn btn-outline">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>购物车 (2)</span>
+                </button>
+                <button class="btn btn-outline">登录</button>
+                <button class="btn btn-primary">注册</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 订单提示内容 -->
+    <div class="notifications-container">
+        <div class="notifications-header">
+            <h1>订单操作提示</h1>
+            <p class="subtitle">展示订单操作成功或失败的消息提示界面</p>
+        </div>
+
+        <div class="notifications-content">
+            <!-- 成功提示示例 -->
+            <div class="notification-section">
+                <h2 class="section-title">成功提示示例</h2>
+                
+                <div class="notification-demo">
+                    <div class="demo-title">下单成功提示</div>
+                    <div class="success-notification">
+                        <div class="success-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="success-content">
+                            <div class="success-title">订单提交成功！</div>
+                            <div class="success-message">您的订单已成功提交，订单号：ORD20241201001</div>
+                            <div class="success-details">预计3-5个工作日送达，请保持手机畅通</div>
+                        </div>
+                    </div>
+                    <div class="notification-actions">
+                        <button class="btn-action btn-primary">查看订单详情</button>
+                        <button class="btn-action btn-secondary">继续购物</button>
+                    </div>
+                </div>
+
+                <div class="notification-demo">
+                    <div class="demo-title">支付成功提示</div>
+                    <div class="success-notification">
+                        <div class="success-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="success-content">
+                            <div class="success-title">支付成功！</div>
+                            <div class="success-message">您的订单支付已完成，金额：¥128.50</div>
+                            <div class="success-details">订单状态已更新为"已支付"，商家将尽快为您发货</div>
+                        </div>
+                    </div>
+                    <div class="notification-actions">
+                        <button class="btn-action btn-success">查看订单</button>
+                        <button class="btn-action btn-secondary">返回首页</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 错误提示示例 -->
+            <div class="notification-section">
+                <h2 class="section-title">错误提示示例</h2>
+                
+                <div class="notification-demo">
+                    <div class="demo-title">下单失败提示</div>
+                    <div class="error-notification">
+                        <div class="error-icon">
+                            <i class="fas fa-times"></i>
+                        </div>
+                        <div class="error-content">
+                            <div class="error-title">订单提交失败！</div>
+                            <div class="error-message">抱歉，由于库存不足，部分商品无法下单</div>
+                            <div class="error-details">请检查购物车中的商品库存，或联系客服：400-123-4567</div>
+                        </div>
+                    </div>
+                    <div class="notification-actions">
+                        <button class="btn-action btn-danger">重新下单</button>
+                        <button class="btn-action btn-secondary">联系客服</button>
+                    </div>
+                </div>
+
+                <div class="notification-demo">
+                    <div class="demo-title">支付失败提示</div>
+                    <div class="error-notification">
+                        <div class="error-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="error-content">
+                            <div class="error-title">支付失败！</div>
+                            <div class="error-message">支付过程中出现错误，请检查您的支付信息</div>
+                            <div class="error-details">错误代码：PAY_001，如有疑问请联系客服</div>
+                        </div>
+                    </div>
+                    <div class="notification-actions">
+                        <button class="btn-action btn-danger">重新支付</button>
+                        <button class="btn-action btn-secondary">更换支付方式</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 警告提示示例 -->
+            <div class="notification-section">
+                <h2 class="section-title">警告提示示例</h2>
+                
+                <div class="notification-demo">
+                    <div class="demo-title">取消订单确认</div>
+                    <div class="warning-notification">
+                        <div class="warning-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="warning-content">
+                            <div class="warning-title">确认取消订单？</div>
+                            <div class="warning-message">订单取消后将无法恢复，已支付的金额将原路退回</div>
+                            <div class="warning-details">退款将在3-7个工作日内到账，请确认是否继续</div>
+                        </div>
+                    </div>
+                    <div class="notification-actions">
+                        <button class="btn-action btn-danger">确认取消</button>
+                        <button class="btn-action btn-secondary">继续保留</button>
+                    </div>
+                </div>
+
+                <div class="notification-demo">
+                    <div class="demo-title">库存不足警告</div>
+                    <div class="warning-notification">
+                        <div class="warning-icon">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="warning-content">
+                            <div class="warning-title">库存不足！</div>
+                            <div class="warning-message">您选择的商品库存仅剩3件，请尽快下单</div>
+                            <div class="warning-details">建议调整购买数量或选择其他商品</div>
+                        </div>
+                    </div>
+                    <div class="notification-actions">
+                        <button class="btn-action btn-warning">调整数量</button>
+                        <button class="btn-action btn-secondary">继续下单</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 信息提示示例 -->
+            <div class="notification-section">
+                <h2 class="section-title">信息提示示例</h2>
+                
+                <div class="notification-demo">
+                    <div class="demo-title">订单状态更新</div>
+                    <div class="info-notification">
+                        <div class="info-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-title">订单状态已更新</div>
+                            <div class="info-message">您的订单已发货，物流单号：SF1234567890</div>
+                            <div class="info-details">您可以通过物流单号跟踪包裹状态</div>
+                        </div>
+                    </div>
+                    <div class="notification-actions">
+                        <button class="btn-action btn-primary">查看物流</button>
+                        <button class="btn-action btn-secondary">知道了</button>
+                    </div>
+                </div>
+
+                <div class="notification-demo">
+                    <div class="demo-title">订单详情信息</div>
+                    <div class="info-notification">
+                        <div class="info-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-title">订单信息</div>
+                            <div class="info-message">订单号：ORD20241201001 | 状态：已发货</div>
+                            <div class="info-details">预计送达时间：2024年12月5日 14:00-18:00</div>
+                        </div>
+                    </div>
+                    <div class="order-info-card">
+                        <div class="order-info-row">
+                            <span class="order-label">订单号</span>
+                            <span class="order-value">ORD20241201001</span>
+                        </div>
+                        <div class="order-info-row">
+                            <span class="order-label">订单状态</span>
+                            <span class="order-status status-info">已发货</span>
+                        </div>
+                        <div class="order-info-row">
+                            <span class="order-label">支付金额</span>
+                            <span class="order-value">¥128.50</span>
+                        </div>
+                        <div class="order-info-row">
+                            <span class="order-label">物流单号</span>
+                            <span class="order-value">SF1234567890</span>
+                        </div>
+                        <div class="order-info-row">
+                            <span class="order-label">预计送达</span>
+                            <span class="order-value">2024年12月5日</span>
+                        </div>
+                    </div>
+                    <div class="notification-actions">
+                        <button class="btn-action btn-primary">查看详情</button>
+                        <button class="btn-action btn-secondary">联系客服</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 简单的交互功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为所有按钮添加点击效果
+            const buttons = document.querySelectorAll('.btn-action');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 添加点击动画效果
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 150);
+                });
+            });
+
+            // 模拟通知出现动画
+            const notifications = document.querySelectorAll('.success-notification, .error-notification, .warning-notification, .info-notification');
+            notifications.forEach((notification, index) => {
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(100px)';
+                    notification.style.transition = 'all 0.5s ease-out';
+                    
+                    setTimeout(() => {
+                        notification.style.opacity = '1';
+                        notification.style.transform = 'translateX(0)';
+                    }, 100);
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>

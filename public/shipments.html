@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>订单物流跟踪 - 助农服务平台</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    /* 物流页面专用样式 */
+    .logistics-container {
+      max-width: 1000px;
+      margin: 100px auto 40px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .logistics-header {
+      background: linear-gradient(135deg, #2c5530, #4a7c59);
+      color: white;
+      padding: 24px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logistics-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20px;
+      width: 200px;
+      height: 200px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+      transform: rotate(45deg);
+    }
+
+    .logistics-title {
+      display: flex;
+      align-items: center;
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logistics-title i {
+      margin-right: 12px;
+      font-size: 2rem;
+      color: #90ee90;
+    }
+
+    .logistics-subtitle {
+      font-size: 0.95rem;
+      opacity: 0.9;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logistics-content {
+      padding: 32px;
+    }
+
+    .order-info-card {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border-left: 4px solid #4a7c59;
+    }
+
+    .order-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .order-info-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .order-label {
+      font-weight: 600;
+      color: #555;
+      font-size: 0.9rem;
+    }
+
+    .order-value {
+      color: #333;
+      font-size: 0.95rem;
+    }
+
+    .order-status {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-paid {
+      background: #e8f5e8;
+      color: #2d5a2d;
+    }
+
+    .status-shipped {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .status-delivered {
+      background: #e8f5e8;
+      color: #2d5a2d;
+    }
+
+    .status-pending {
+      background: #fff3e0;
+      color: #f57c00;
+    }
+
+    .refresh-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .refresh-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: #4a7c59;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .refresh-btn:hover {
+      background: #3a6b49;
+      transform: translateY(-1px);
+    }
+
+    .refresh-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .refresh-btn i {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .last-update {
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    /* 物流时间轴样式 */
+    .logistics-timeline {
+      position: relative;
+      padding-left: 30px;
+    }
+
+    .logistics-timeline::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(to bottom, #4a7c59, #e0e0e0);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 32px;
+      padding-left: 20px;
+    }
+
+    .timeline-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .timeline-marker {
+      position: absolute;
+      left: -22px;
+      top: 6px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #4a7c59;
+      border: 4px solid #fff;
+      box-shadow: 0 0 0 3px #e8f5e8;
+      z-index: 2;
+    }
+
+    .timeline-item.current .timeline-marker {
+      background: #ff6b35;
+      box-shadow: 0 0 0 3px #ffe8e0;
+      animation: pulse 2s infinite;
+    }
+
+    .timeline-item.completed .timeline-marker {
+      background: #27ae60;
+      box-shadow: 0 0 0 3px #e8f5e8;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(255, 107, 53, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0); }
+    }
+
+    .timeline-content {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+
+    .timeline-content:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      transform: translateY(-2px);
+    }
+
+    .timeline-status {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #2c5530;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .timeline-status i {
+      font-size: 1.2rem;
+    }
+
+    .timeline-location {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .timeline-location i {
+      color: #4a7c59;
+    }
+
+    .timeline-time {
+      color: #999;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .timeline-time i {
+      color: #999;
+    }
+
+    /* 空状态样式 */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      color: #ddd;
+      margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      color: #555;
+    }
+
+    .empty-state p {
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* 加载状态 */
+    .loading-state {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #4a7c59;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    .loading-text {
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .logistics-container {
+        margin: 80px 16px 40px;
+        border-radius: 12px;
+      }
+
+      .logistics-header {
+        padding: 20px 24px;
+      }
+
+      .logistics-content {
+        padding: 24px 20px;
+      }
+
+      .logistics-title {
+        font-size: 1.5rem;
+      }
+
+      .order-info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      .refresh-section {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      .logistics-timeline {
+        padding-left: 25px;
+      }
+
+      .timeline-item {
+        padding-left: 15px;
+      }
+
+      .timeline-marker {
+        left: -18px;
+        width: 14px;
+        height: 14px;
+      }
+    }
+
+    /* 返回按钮样式 */
+    .back-btn {
+      position: absolute;
+      top: 24px;
+      right: 32px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 8px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      z-index: 2;
+    }
+
+    .back-btn:hover {
+      background: rgba(255,255,255,0.3);
+      color: white;
+      text-decoration: none;
+    }
+  </style>
+  <script defer src="/js/shipments.js"></script>
+  <script>
+    // 增强的消息提示
+    function toast(msg, type = 'info') {
+      const colors = {
+        success: '#27ae60',
+        error: '#e74c3c',
+        warning: '#f39c12',
+        info: '#3498db'
+      };
+      
+      const el = document.createElement('div');
+      el.textContent = msg;
+      el.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: ${colors[type] || colors.info};
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 10000;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+      `;
+      
+      document.body.appendChild(el);
+      
+      // 动画进入
+      setTimeout(() => {
+        el.style.transform = 'translateX(0)';
+      }, 10);
+      
+      // 自动移除
+      setTimeout(() => {
+        el.style.transform = 'translateX(100%)';
+        setTimeout(() => el.remove(), 300);
+      }, 3000);
+    }
+  </script>
+</head>
+<body>
+  <div class="logistics-container">
+    <div class="logistics-header">
+      <div class="logistics-title">
+        <i class="fas fa-shipping-fast"></i>
+        订单物流跟踪
+      </div>
+      <div class="logistics-subtitle">实时跟踪您的订单配送状态</div>
+      <a href="/" class="back-btn">
+        <i class="fas fa-arrow-left"></i> 返回首页
+      </a>
+    </div>
+    
+    <div class="logistics-content">
+      <!-- 订单信息卡片 -->
+      <div class="order-info-card">
+        <div class="order-info-row">
+          <span class="order-label">订单号</span>
+          <span class="order-value" id="orderId">-</span>
+        </div>
+        <div class="order-info-row">
+          <span class="order-label">订单状态</span>
+          <span class="order-status" id="orderStatus">-</span>
+        </div>
+        <div class="order-info-row">
+          <span class="order-label">下单时间</span>
+          <span class="order-value" id="orderTime">-</span>
+        </div>
+      </div>
+
+      <!-- 刷新区域 -->
+      <div class="refresh-section">
+        <button id="refreshBtn" class="refresh-btn">
+          <i class="fas fa-sync-alt"></i>
+          刷新物流信息
+        </button>
+        <div class="last-update" id="lastUpdate">最后更新：-</div>
+      </div>
+
+      <!-- 物流时间轴 -->
+      <div id="logisticsTimeline" class="logistics-timeline"></div>
+      
+      <!-- 空状态 -->
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <i class="fas fa-truck"></i>
+        <h3>暂无物流信息</h3>
+        <p>订单已支付，正在等待商家发货，请耐心等待</p>
+      </div>
+
+      <!-- 加载状态 -->
+      <div id="loadingState" class="loading-state" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">正在加载物流信息...</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
