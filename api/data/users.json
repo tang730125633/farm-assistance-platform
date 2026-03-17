@@ -75,7 +75,7 @@
     "id": "admin-001-0000-000000000001",
     "username": "admin",
     "email": "admin@farmplatform.com",
-    "password": "$2a$10$YourHashedPasswordHere",
+    "password": "$2a$10$Jou3wWdUNUHdjymn5bjd6Op/PDRnlhXSe6JayIOC0BqFCAZy1QXr.",
     "role": "admin",
     "createdAt": "2025-03-17T12:00:00.000Z",
     "updatedAt": "2025-03-17T12:00:00.000Z"
