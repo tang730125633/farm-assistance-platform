@@ -73,6 +73,37 @@ app.get('/api/stats', (req, res) => {
   });
 });
 
+// 诊断端点：检查 returns.html 文件内容
+app.get('/api/debug/returns-html', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  const filePath = path.join(__dirname, '../public/returns.html');
+
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const hasProcessModal = content.includes('id="processModal"');
+    const hasProcessReturnInfo = content.includes('id="processReturnInfo"');
+    const lines = content.split('\n');
+    const processReturnInfoLine = lines.findIndex(l => l.includes('id="processReturnInfo"')) + 1;
+
+    res.json({
+      fileExists: true,
+      fileSize: content.length,
+      lineCount: lines.length,
+      hasProcessModal,
+      hasProcessReturnInfo,
+      processReturnInfoLine: processReturnInfoLine > 0 ? processReturnInfoLine : null,
+      snippet: processReturnInfoLine > 0 ? lines.slice(processReturnInfoLine - 2, processReturnInfoLine + 2) : null
+    });
+  } catch (err) {
+    res.status(500).json({
+      fileExists: false,
+      error: err.message,
+      path: filePath
+    });
+  }
+});
+
 // 404 处理
 app.use('*', (req, res) => {
   res.status(404).json({
