@@ -90,6 +90,19 @@ async function initDatabase() {
       )
     `);
 
+    // 创建购物车表
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS cart (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,
+        product_id VARCHAR(50) REFERENCES products(id) ON DELETE CASCADE,
+        quantity INTEGER NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, product_id)
+      )
+    `);
+
     // 插入默认 admin 用户
     const adminExists = await client.query('SELECT * FROM users WHERE username = $1', ['admin']);
     if (adminExists.rows.length === 0) {
