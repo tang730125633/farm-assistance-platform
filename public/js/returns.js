@@ -309,6 +309,7 @@ async function openApplyModal(orderId) {
         <option value="${o.id}">${o.id.substring(0, 8)}... - ¥${o.totalAmount} - ${o.items.map(it => it.name).join(', ')}</option>
       `).join('');
 
+      // 清空并重建订单信息区域
       document.getElementById('applyOrderInfo').innerHTML = `
         <div class="form-group" style="margin-bottom:0">
           <label>选择要退货的订单 <span style="color:#e74c3c">*</span></label>
@@ -316,9 +317,14 @@ async function openApplyModal(orderId) {
             <option value="">请选择订单...</option>
             ${orderOptions}
           </select>
-          <div id="selectedOrderDetails" style="margin-top:10px;padding:10px;background:#e8f5e9;border-radius:6px;display:none"></div>
         </div>
       `;
+      // 重新插入 selectedOrderDetails
+      const detailsDiv = document.createElement('div');
+      detailsDiv.id = 'selectedOrderDetails';
+      detailsDiv.style.cssText = 'margin-top:10px;padding:10px;background:#e8f5e9;border-radius:6px;display:none';
+      document.getElementById('applyOrderInfo').appendChild(detailsDiv);
+
       document.getElementById('applyOrderId').value = '';
     } catch (e) {
       showToast('加载订单列表失败', 'error');

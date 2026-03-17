@@ -102,10 +102,12 @@
         <button onclick="closeApplyModal()" style="background:none;border:none;font-size:24px;cursor:pointer">&times;</button>
       </div>
       <form id="applyForm">
-        <input type="hidden" id="applyOrderId">
+        <input type="hidden" id="applyOrderId" value="">
         <div class="form-group">
           <label>订单信息</label>
-          <div id="applyOrderInfo" style="padding:10px;background:#f8f9fa;border-radius:6px"></div>
+          <div id="applyOrderInfo" style="padding:10px;background:#f8f9fa;border-radius:6px">
+            <div id="selectedOrderDetails" style="display:none;"></div>
+          </div>
         </div>
         <div class="form-group">
           <label>退货原因 <span style="color:#e74c3c">*</span></label>
