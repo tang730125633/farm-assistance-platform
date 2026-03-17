@@ -104,18 +104,6 @@ router.post('/register', asyncHandler(async (req, res) => {
     console.error('注册错误:', error);
     return sendErrorResponse(res, ERRORS.DATABASE_ERROR, '注册失败，请重试');
   }
-
-  // 生成 Token
-  const token = generateToken(savedUser);
-  
-  // 返回用户信息（不包含密码）
-  const { password: _, ...userWithoutPassword } = savedUser;
-  
-  res.status(201).json({
-    message: '注册成功',
-    user: userWithoutPassword,
-    token
-  });
 }));
 
 // 用户登录

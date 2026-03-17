@@ -148,7 +148,11 @@ router.patch('/:id/cancel', authenticateToken, async (req, res) => {
     // 更新订单状态
     await orderDb.update(order.id, { status: 'cancelled', updatedAt: new Date().toISOString() });
 
-  res.json({ message: '订单已取消', order });
+    res.json({ message: '订单已取消', order });
+  } catch (error) {
+    console.error('取消订单错误:', error);
+    res.status(500).json({ msg: 'server error' });
+  }
 });
 
 module.exports = router;

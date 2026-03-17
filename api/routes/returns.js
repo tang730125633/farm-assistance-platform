@@ -1,6 +1,6 @@
 const express = require('express');
 const { v4: uuid } = require('uuid');
-const { readJsonFile, writeJsonFile } = require('../dao/db');
+const { returnDb, orderDb, userDb, productDb } = require('../dao/dbAdapter');
 const { authenticateToken } = require('../utils/auth');
 const multer = require('multer');
 const path = require('path');
@@ -39,83 +39,92 @@ const upload = multer({
 });
 
 // GET /api/returns - 获取退货申请列表
-router.get('/', authenticateToken, (req, res) => {
-  const returns = readJsonFile('returns.json');
-  const orders = readJsonFile('orders.json');
-  const users = readJsonFile('users.json');
-  const products = readJsonFile('products.json');
+router.get('/', authenticateToken, async (req, res) => {
+  try {
+    const returns = await returnDb.findAll();
+    const orders = await orderDb.findAll();
+    const users = await userDb.findAll();
+    const products = await productDb.findAll();
 
-  const isAdmin = req.user.role === 'admin';
+    const isAdmin = req.user.role === 'admin';
 
-  let result = returns;
+    let result = returns;
 
-  // 非管理员只能看到自己的退货申请
-  if (!isAdmin) {
-    result = returns.filter(r => r.userId === req.user.id);
-  }
-
-  // 补充关联信息
-  result = result.map(ret => {
-    const order = orders.find(o => o.id === ret.orderId);
-    const user = users.find(u => u.id === ret.userId);
-
-    // 获取商品信息
-    let items = [];
-    if (order && order.items) {
-      items = order.items.map(item => {
-        const product = products.find(p => p.id === item.productId);
-        return {
-          ...item,
-          productImage: product ? product.image : null
-        };
-      });
+    // 非管理员只能看到自己的退货申请
+    if (!isAdmin) {
+      result = returns.filter(r => r.userId === req.user.id);
     }
 
-    return {
-      ...ret,
-      orderInfo: order ? {
-        id: order.id,
-        totalAmount: order.totalAmount,
-        status: order.status,
-        createdAt: order.createdAt,
-        items: items
-      } : null,
-      userInfo: user ? {
-        id: user.id,
-        username: user.username,
-        email: user.email
-      } : null
-    };
-  });
+    // 补充关联信息
+    result = result.map(ret => {
+      const order = orders.find(o => o.id === ret.orderId);
+      const user = users.find(u => u.id === ret.userId);
 
-  // 按状态筛选（可选）
-  const { status } = req.query;
-  if (status) {
-    result = result.filter(r => r.status === status);
+      // 获取商品信息
+      let items = [];
+      if (order && order.items) {
+        items = order.items.map(item => {
+          const product = products.find(p => p.id === item.productId);
+          return {
+            ...item,
+            productImage: product ? product.image : null
+          };
+        });
+      }
+
+      return {
+        ...ret,
+        orderInfo: order ? {
+          id: order.id,
+          totalAmount: order.totalAmount,
+          status: order.status,
+          createdAt: order.createdAt,
+          items: items
+        } : null,
+        userInfo: user ? {
+          id: user.id,
+          username: user.username,
+          email: user.email
+        } : null
+      };
+    });
+
+    // 按状态筛选（可选）
+    const { status } = req.query;
+    if (status) {
+      result = result.filter(r => r.status === status);
+    }
+
+    res.json({ returns: result });
+  } catch (error) {
+    console.error('获取退货列表错误:', error);
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '服务器内部错误' } });
   }
-
-  res.json({ returns: result });
 });
 
 // GET /api/returns/:id - 获取单个退货申请详情
-router.get('/:id', authenticateToken, (req, res) => {
-  const returns = readJsonFile('returns.json');
-  const ret = returns.find(r => r.id === req.params.id);
+router.get('/:id', authenticateToken, async (req, res) => {
+  try {
+    const ret = await returnDb.findById(req.params.id);
 
-  if (!ret) {
-    return res.status(404).json({ error: { code: 'NOT_FOUND', message: '退货申请不存在' } });
+    if (!ret) {
+      return res.status(404).json({ error: { code: 'NOT_FOUND', message: '退货申请不存在' } });
+    }
+
+    const isAdmin = req.user.role === 'admin';
+    if (!isAdmin && ret.userId !== req.user.id) {
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: '无权查看此退货申请' } });
+    }
+
+    res.json({ return: ret });
+  } catch (error) {
+    console.error('获取退货详情错误:', error);
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '服务器内部错误' } });
   }
-
-  const isAdmin = req.user.role === 'admin';
-  if (!isAdmin && ret.userId !== req.user.id) {
-    return res.status(403).json({ error: { code: 'FORBIDDEN', message: '无权查看此退货申请' } });
-  }
-
-  res.json({ return: ret });
 });
 
 // POST /api/returns - 创建退货申请（支持图片上传）
-router.post('/', authenticateToken, upload.array('images', 5), (req, res) => {
+router.post('/', authenticateToken, upload.array('images', 5), async (req, res) => {
   try {
     const { orderId, reason, items } = req.body;
 
@@ -127,8 +136,7 @@ router.post('/', authenticateToken, upload.array('images', 5), (req, res) => {
       return res.status(400).json({ error: { code: 'BAD_REQUEST', message: '订单ID和退货原因必填' } });
     }
 
-    const orders = readJsonFile('orders.json');
-    const order = orders.find(o => o.id === orderId);
+    const order = await orderDb.findById(orderId);
 
     if (!order) {
       // 删除已上传的图片
@@ -157,7 +165,7 @@ router.post('/', authenticateToken, upload.array('images', 5), (req, res) => {
     }
 
     // 检查是否已有进行中的退货申请
-    const returns = readJsonFile('returns.json');
+    const returns = await returnDb.findAll();
     const existingReturn = returns.find(r => r.orderId === orderId && r.status === 'pending');
     if (existingReturn) {
       // 删除已上传的图片
@@ -211,8 +219,7 @@ router.post('/', authenticateToken, upload.array('images', 5), (req, res) => {
       updatedAt: new Date().toISOString()
     };
 
-    returns.push(newReturn);
-    writeJsonFile('returns.json', returns);
+    await returnDb.create(newReturn);
 
     res.status(201).json({ message: '退货申请已提交', return: newReturn });
   } catch (error) {
@@ -229,107 +236,109 @@ router.post('/', authenticateToken, upload.array('images', 5), (req, res) => {
 });
 
 // PATCH /api/returns/:id/approve - 管理员同意退货
-router.patch('/:id/approve', authenticateToken, (req, res) => {
-  const isAdmin = req.user.role === 'admin';
-  if (!isAdmin) {
-    return res.status(403).json({ error: { code: 'FORBIDDEN', message: '只有管理员可以审核退货' } });
-  }
+router.patch('/:id/approve', authenticateToken, async (req, res) => {
+  try {
+    const isAdmin = req.user.role === 'admin';
+    if (!isAdmin) {
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: '只有管理员可以审核退货' } });
+    }
 
-  const { adminComment } = req.body;
-  const returns = readJsonFile('returns.json');
-  const retIndex = returns.findIndex(r => r.id === req.params.id);
+    const { adminComment } = req.body;
+    const ret = await returnDb.findById(req.params.id);
 
-  if (retIndex === -1) {
-    return res.status(404).json({ error: { code: 'NOT_FOUND', message: '退货申请不存在' } });
-  }
+    if (!ret) {
+      return res.status(404).json({ error: { code: 'NOT_FOUND', message: '退货申请不存在' } });
+    }
 
-  const ret = returns[retIndex];
-  if (ret.status !== 'pending') {
-    return res.status(409).json({ error: { code: 'CONFLICT', message: '该退货申请已处理' } });
-  }
+    if (ret.status !== 'pending') {
+      return res.status(409).json({ error: { code: 'CONFLICT', message: '该退货申请已处理' } });
+    }
 
-  // 更新退货申请状态
-  ret.status = 'approved';
-  ret.adminComment = adminComment || '';
-  ret.approvedAt = new Date().toISOString();
-  ret.approvedBy = req.user.id;
-  ret.updatedAt = new Date().toISOString();
+    // 更新退货申请状态
+    await returnDb.update(req.params.id, {
+      status: 'approved',
+      adminComment: adminComment || '',
+      updatedAt: new Date().toISOString()
+    });
 
-  // 恢复订单状态为已退货
-  const orders = readJsonFile('orders.json');
-  const order = orders.find(o => o.id === ret.orderId);
-  if (order) {
-    order.status = 'returned';
-    order.returnedAt = new Date().toISOString();
-    writeJsonFile('orders.json', orders);
+    // 恢复订单状态为已退货
+    const order = await orderDb.findById(ret.orderId);
+    if (order) {
+      await orderDb.update(ret.orderId, { status: 'returned', updatedAt: new Date().toISOString() });
 
-    // 恢复库存
-    const products = readJsonFile('products.json');
-    for (const item of ret.items) {
-      const product = products.find(p => p.id === item.productId);
-      if (product) {
-        product.stock += item.qty;
+      // 恢复库存
+      for (const item of ret.items) {
+        const product = await productDb.findById(item.productId);
+        if (product) {
+          await productDb.update(item.productId, { stock: product.stock + item.qty });
+        }
       }
     }
-    writeJsonFile('products.json', products);
+
+    res.json({ message: '退货申请已批准', return: await returnDb.findById(req.params.id) });
+  } catch (error) {
+    console.error('批准退货错误:', error);
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '服务器内部错误' } });
   }
-
-  writeJsonFile('returns.json', returns);
-
-  res.json({ message: '退货申请已批准', return: ret });
 });
 
 // PATCH /api/returns/:id/reject - 管理员拒绝退货
-router.patch('/:id/reject', authenticateToken, (req, res) => {
-  const isAdmin = req.user.role === 'admin';
-  if (!isAdmin) {
-    return res.status(403).json({ error: { code: 'FORBIDDEN', message: '只有管理员可以审核退货' } });
+router.patch('/:id/reject', authenticateToken, async (req, res) => {
+  try {
+    const isAdmin = req.user.role === 'admin';
+    if (!isAdmin) {
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: '只有管理员可以审核退货' } });
+    }
+
+    const { adminComment } = req.body;
+    const ret = await returnDb.findById(req.params.id);
+
+    if (!ret) {
+      return res.status(404).json({ error: { code: 'NOT_FOUND', message: '退货申请不存在' } });
+    }
+
+    if (ret.status !== 'pending') {
+      return res.status(409).json({ error: { code: 'CONFLICT', message: '该退货申请已处理' } });
+    }
+
+    await returnDb.update(req.params.id, {
+      status: 'rejected',
+      adminComment: adminComment || '',
+      updatedAt: new Date().toISOString()
+    });
+
+    res.json({ message: '退货申请已拒绝', return: await returnDb.findById(req.params.id) });
+  } catch (error) {
+    console.error('拒绝退货错误:', error);
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '服务器内部错误' } });
   }
-
-  const { adminComment } = req.body;
-  const returns = readJsonFile('returns.json');
-  const retIndex = returns.findIndex(r => r.id === req.params.id);
-
-  if (retIndex === -1) {
-    return res.status(404).json({ error: { code: 'NOT_FOUND', message: '退货申请不存在' } });
-  }
-
-  const ret = returns[retIndex];
-  if (ret.status !== 'pending') {
-    return res.status(409).json({ error: { code: 'CONFLICT', message: '该退货申请已处理' } });
-  }
-
-  ret.status = 'rejected';
-  ret.adminComment = adminComment || '';
-  ret.rejectedAt = new Date().toISOString();
-  ret.rejectedBy = req.user.id;
-  ret.updatedAt = new Date().toISOString();
-
-  writeJsonFile('returns.json', returns);
-
-  res.json({ message: '退货申请已拒绝', return: ret });
 });
 
 // GET /api/returns/stats - 获取退货统计（管理员）
-router.get('/stats/overview', authenticateToken, (req, res) => {
-  const isAdmin = req.user.role === 'admin';
-  if (!isAdmin) {
-    return res.status(403).json({ error: { code: 'FORBIDDEN', message: '只有管理员可以查看统计' } });
+router.get('/stats/overview', authenticateToken, async (req, res) => {
+  try {
+    const isAdmin = req.user.role === 'admin';
+    if (!isAdmin) {
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: '只有管理员可以查看统计' } });
+    }
+
+    const returns = await returnDb.findAll();
+
+    const stats = {
+      total: returns.length,
+      pending: returns.filter(r => r.status === 'pending').length,
+      approved: returns.filter(r => r.status === 'approved').length,
+      rejected: returns.filter(r => r.status === 'rejected').length,
+      totalRefundAmount: returns
+        .filter(r => r.status === 'approved')
+        .reduce((sum, r) => sum + (r.refundAmount || 0), 0)
+    };
+
+    res.json({ stats });
+  } catch (error) {
+    console.error('获取退货统计错误:', error);
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '服务器内部错误' } });
   }
-
-  const returns = readJsonFile('returns.json');
-
-  const stats = {
-    total: returns.length,
-    pending: returns.filter(r => r.status === 'pending').length,
-    approved: returns.filter(r => r.status === 'approved').length,
-    rejected: returns.filter(r => r.status === 'rejected').length,
-    totalRefundAmount: returns
-      .filter(r => r.status === 'approved')
-      .reduce((sum, r) => sum + r.refundAmount, 0)
-  };
-
-  res.json({ stats });
 });
 
 module.exports = router;
