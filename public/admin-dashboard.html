@@ -413,7 +413,7 @@
                     <span class="badge" id="returnBadge" style="display:none;">0</span>
                 </button>
                 <button class="tab-btn" data-tab="products">
-                    <i class="fas fa-box"></i> 商品管理
+                    <i class="fas fa-box"></i> 所有商品
                 </button>
             </div>
 
@@ -622,23 +622,32 @@
             }
         }
 
-        // 加载用户
+        // 加载所有用户（管理员需要查看所有商品对应的农户信息）
         async function loadUsers() {
             try {
                 const token = localStorage.getItem('token');
                 const response = await fetch(`${API_BASE_URL}/api/auth/users`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                // 如果没有这个接口，从订单中收集用户信息
-                const uniqueUsers = {};
-                ordersData.forEach(order => {
-                    if (order.userInfo) {
-                        uniqueUsers[order.userId] = order.userInfo;
-                    }
-                });
-                usersData = Object.values(uniqueUsers);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    usersData = data.users || [];
+                    console.log('加载用户列表成功:', usersData.length, '个用户');
+                } else {
+                    // 如果API失败，从订单中收集用户信息作为备用
+                    console.warn('用户列表API失败，使用备用方案');
+                    const uniqueUsers = {};
+                    ordersData.forEach(order => {
+                        if (order.userInfo) {
+                            uniqueUsers[order.userId] = order.userInfo;
+                        }
+                    });
+                    usersData = Object.values(uniqueUsers);
+                }
             } catch (error) {
                 console.error('加载用户失败:', error);
+                usersData = [];
             }
         }
 
@@ -739,7 +748,7 @@
             }).join('');
         }
 
-        // 渲染商品列表
+        // 渲染商品列表（管理员看到所有商品）
         function renderProducts() {
             const container = document.getElementById('productsContainer');
             if (productsData.length === 0) {
@@ -747,13 +756,21 @@
                 return;
             }
 
-            container.innerHTML = productsData.map(product => `
+            container.innerHTML = productsData.map(product => {
+                // 查找农户信息
+                const farmer = usersData.find(u => u.id === product.farmerId);
+                const farmerName = farmer ? farmer.username : '未知农户';
+
+                return `
                 <div class="product-card">
                     <img src="${product.image || '/images/default-product.png'}" alt="${product.name}" class="product-img">
                     <div class="product-info">
                         <div class="product-name">${product.name}</div>
                         <div class="product-price">¥${product.price}</div>
                         <div class="product-stock">库存: ${product.stock}</div>
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #666;">
+                            <i class="fas fa-user-circle"></i> 农户: ${farmerName}
+                        </div>
                     </div>
                     <div class="product-actions">
                         <span class="text-muted">ID: ${product.id.slice(0, 8)}...</span>
@@ -762,7 +779,7 @@
                         </button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         // 查看订单详情
