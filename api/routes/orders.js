@@ -1,19 +1,20 @@
 const express = require('express');
 const { v4: uuid } = require('uuid');
-const { readJsonFile, writeJsonFile } = require('../dao/db');
+const { orderDb, productDb, userDb } = require('../dao/dbAdapter');
 const { authenticateToken, JWT_SECRET } = require('../utils/auth');
 
 const router = express.Router();
 // 统一使用 utils/auth 的鉴权中间件
 
 // GET /api/orders?me=1
-router.get('/', authenticateToken, (req, res) => {
-  const orders = readJsonFile('orders.json');
-  const users = readJsonFile('users.json');
-  const isAdmin = req.user.role === 'admin';
-  const isFarmer = req.user.role === 'farmer';
-  const me = req.query.me === '1';
-  let result = orders;
+router.get('/', authenticateToken, async (req, res) => {
+  try {
+    const orders = await orderDb.findAll();
+    const users = await userDb.findAll();
+    const isAdmin = req.user.role === 'admin';
+    const isFarmer = req.user.role === 'farmer';
+    const me = req.query.me === '1';
+    let result = orders;
 
   if (isFarmer) {
     // 农户：查看包含自己商品的订单
@@ -50,102 +51,102 @@ router.get('/', authenticateToken, (req, res) => {
 });
 
 // GET /api/orders/:id
-router.get('/:id', authenticateToken, (req, res) => {
-  const orders = readJsonFile('orders.json');
-  const order = orders.find(o => o.id === req.params.id);
-  if (!order) return res.status(404).json({ msg: 'not found' });
-  const isAdmin = req.user.role === 'admin';
-  const isFarmer = req.user.role === 'farmer';
+router.get('/:id', authenticateToken, async (req, res) => {
+  try {
+    const order = await orderDb.findById(req.params.id);
+    if (!order) return res.status(404).json({ msg: 'not found' });
+    const isAdmin = req.user.role === 'admin';
+    const isFarmer = req.user.role === 'farmer';
 
-  // 权限检查：管理员可以看所有，农户可以看包含自己商品的订单，消费者只能看自己的
-  const hasAccess = isAdmin ||
-    order.userId === req.user.id ||
-    (isFarmer && order.items && order.items.some(item => item.farmerId === req.user.id));
+    // 权限检查：管理员可以看所有，农户可以看包含自己商品的订单，消费者只能看自己的
+    const hasAccess = isAdmin ||
+      order.userId === req.user.id ||
+      (isFarmer && order.items && order.items.some(item => item.farmerId === req.user.id));
 
-  if (!hasAccess) {
-    return res.status(403).json({ msg: 'forbidden' });
+    if (!hasAccess) {
+      return res.status(403).json({ msg: 'forbidden' });
+    }
+    res.json({ order });
+  } catch (error) {
+    console.error('获取订单详情错误:', error);
+    res.status(500).json({ msg: 'server error' });
   }
-  res.json({ order });
 });
 
 // POST /api/orders
-router.post('/', authenticateToken, (req, res) => {
-  const itemsInput = Array.isArray(req.body.items) ? req.body.items : [];
-  if (itemsInput.length === 0) return res.status(400).json({ msg: 'items empty' });
+router.post('/', authenticateToken, async (req, res) => {
+  try {
+    const itemsInput = Array.isArray(req.body.items) ? req.body.items : [];
+    if (itemsInput.length === 0) return res.status(400).json({ msg: 'items empty' });
 
-  const products = readJsonFile('products.json');
+    const products = await productDb.findAll();
 
-  // 校验、计算与库存扣减（先检查再扣减，确保全部充足）
-  const calcItems = [];
-  for (const it of itemsInput) {
-    const { productId, qty } = it || {};
-    if (!productId || !Number.isInteger(qty) || qty <= 0) {
-      return res.status(400).json({ msg: 'bad item' });
+    // 校验、计算与库存扣减（先检查再扣减，确保全部充足）
+    const calcItems = [];
+    for (const it of itemsInput) {
+      const { productId, qty } = it || {};
+      if (!productId || !Number.isInteger(qty) || qty <= 0) {
+        return res.status(400).json({ msg: 'bad item' });
+      }
+      const p = products.find(x => x.id === productId);
+      if (!p || p.stock < qty) {
+        return res.status(400).json({ msg: `stock not enough for ${productId}` });
+      }
+      calcItems.push({ productId: p.id, name: p.name, price: Number(p.price), qty, farmerId: p.farmerId });
     }
-    const p = products.find(x => x.id === productId);
-    if (!p || p.stock < qty) {
-      return res.status(400).json({ msg: `stock not enough for ${productId}` });
+
+    // 计算总价
+    const totalAmount = calcItems.reduce((sum, it) => sum + it.price * it.qty, 0);
+
+    // 扣减库存
+    for (const it of calcItems) {
+      await productDb.update(it.productId, { stock: products.find(x => x.id === it.productId).stock - it.qty });
     }
-    calcItems.push({ productId: p.id, name: p.name, price: Number(p.price), qty, farmerId: p.farmerId });
+
+    // 生成订单
+    const order = {
+      id: uuid(),
+      userId: req.user.id,
+      items: calcItems,
+      totalAmount: Number(totalAmount.toFixed(2)),
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+
+    await orderDb.create(order);
+
+    res.status(201).json({ order });
+  } catch (error) {
+    console.error('创建订单错误:', error);
+    res.status(500).json({ msg: 'server error' });
   }
-
-  // 计算总价
-  const totalAmount = calcItems.reduce((sum, it) => sum + it.price * it.qty, 0);
-
-  // 扣减库存并写回
-  for (const it of calcItems) {
-    const p = products.find(x => x.id === it.productId);
-    p.stock -= it.qty;
-  }
-  writeJsonFile('products.json', products);
-
-  // 生成订单
-  const order = {
-    id: uuid(),
-    userId: req.user.id,
-    items: calcItems,
-    totalAmount: Number(totalAmount.toFixed(2)),
-    status: 'pending',
-    createdAt: new Date().toISOString()
-  };
-
-  const orders = readJsonFile('orders.json');
-  orders.push(order);
-  writeJsonFile('orders.json', orders);
-
-  res.status(201).json({ order });
 });
 
 // PATCH /api/orders/:id/cancel（仅 pending 可取消，库存加回）
-router.patch('/:id/cancel', authenticateToken, (req, res) => {
-  const orders = readJsonFile('orders.json');
-  const orderIndex = orders.findIndex(o => o.id === req.params.id);
-  if (orderIndex === -1) return res.status(404).json({ msg: 'not found' });
-  
-  const order = orders[orderIndex];
-  const isAdmin = req.user.role === 'admin';
-  if (!isAdmin && order.userId !== req.user.id) {
-    return res.status(403).json({ msg: 'forbidden' });
-  }
-  
-  if (order.status !== 'pending') {
-    return res.status(400).json({ msg: 'only pending orders can be cancelled' });
-  }
+router.patch('/:id/cancel', authenticateToken, async (req, res) => {
+  try {
+    const order = await orderDb.findById(req.params.id);
+    if (!order) return res.status(404).json({ msg: 'not found' });
 
-  // 恢复库存
-  const products = readJsonFile('products.json');
-  for (const item of order.items) {
-    const product = products.find(p => p.id === item.productId);
-    if (product) {
-      product.stock += item.qty;
+    const isAdmin = req.user.role === 'admin';
+    if (!isAdmin && order.userId !== req.user.id) {
+      return res.status(403).json({ msg: 'forbidden' });
     }
-  }
-  writeJsonFile('products.json', products);
 
-  // 更新订单状态
-  order.status = 'cancelled';
-  order.updatedAt = new Date().toISOString();
-  writeJsonFile('orders.json', orders);
+    if (order.status !== 'pending') {
+      return res.status(400).json({ msg: 'only pending orders can be cancelled' });
+    }
+
+    // 恢复库存
+    for (const item of order.items) {
+      const product = await productDb.findById(item.productId);
+      if (product) {
+        await productDb.update(item.productId, { stock: product.stock + item.qty });
+      }
+    }
+
+    // 更新订单状态
+    await orderDb.update(order.id, { status: 'cancelled', updatedAt: new Date().toISOString() });
 
   res.json({ message: '订单已取消', order });
 });
