@@ -80,7 +80,10 @@ router.post('/add', authenticateToken, async (req, res) => {
     const { productId, quantity = 1 } = req.body;
     console.log('[购物车 POST] 添加商品:', { productId, quantity, userId: req.user.id });
 
+    console.log('[购物车 POST] 参数检查:', { productId, quantity, isInteger: Number.isInteger(quantity) });
+
     if (!productId || !Number.isInteger(quantity) || quantity <= 0) {
+      console.log('[购物车 POST] 参数无效:', { productId, quantity, type: typeof quantity });
       return res.status(400).json({ msg: 'Invalid productId or quantity' });
     }
 
@@ -106,19 +109,23 @@ router.post('/add', authenticateToken, async (req, res) => {
       if (existingResult.rows.length > 0) {
         // 更新数量
         const newQty = existingResult.rows[0].quantity + quantity;
+        console.log('[购物车 POST] 更新现有商品数量:', { newQty });
         if (product.stock < newQty) {
           return res.status(400).json({ msg: 'Insufficient stock for total quantity' });
         }
-        await pool.query(
-          'UPDATE cart SET quantity = $1, updated_at = NOW() WHERE user_id = $2 AND product_id = $3',
+        const updateResult = await pool.query(
+          'UPDATE cart SET quantity = $1, updated_at = NOW() WHERE user_id = $2 AND product_id = $3 RETURNING *',
           [newQty, req.user.id, productId]
         );
+        console.log('[购物车 POST] 更新结果:', updateResult.rowCount, '行');
       } else {
         // 插入新记录
-        await pool.query(
-          'INSERT INTO cart (user_id, product_id, quantity, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW())',
+        console.log('[购物车 POST] 插入新记录:', { userId: req.user.id, productId, quantity });
+        const insertResult = await pool.query(
+          'INSERT INTO cart (user_id, product_id, quantity, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING *',
           [req.user.id, productId, quantity]
         );
+        console.log('[购物车 POST] 插入结果:', insertResult.rowCount, '行', insertResult.rows[0]);
       }
     } else {
       // 本地开发用 JSON
