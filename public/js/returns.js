@@ -289,24 +289,73 @@ function initApplyFromOrder() {
 let selectedImages = [];
 
 async function openApplyModal(orderId) {
-  document.getElementById('applyOrderId').value = orderId;
   selectedImages = [];
+  document.getElementById('imagePreview').innerHTML = '';
 
-  // 获取订单详情
+  // 如果没有传入 orderId，显示订单选择器
+  if (!orderId) {
+    try {
+      const res = await fetch('/api/orders?me=1', { headers: authHeaders() });
+      const data = await res.json();
+      const orders = (data.orders || []).filter(o => o.status === 'paid');
+
+      if (orders.length === 0) {
+        showToast('没有可退货的订单（只有已支付订单可申请退货）', 'error');
+        return;
+      }
+
+      // 构建订单选择列表
+      const orderOptions = orders.map(o => `
+        <option value="${o.id}">${o.id.substring(0, 8)}... - ¥${o.totalAmount} - ${o.items.map(it => it.name).join(', ')}</option>
+      `).join('');
+
+      document.getElementById('applyOrderInfo').innerHTML = `
+        <div class="form-group" style="margin-bottom:0">
+          <label>选择要退货的订单 <span style="color:#e74c3c">*</span></label>
+          <select id="applyOrderSelect" class="form-control" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px" onchange="loadOrderDetails(this.value)">
+            <option value="">请选择订单...</option>
+            ${orderOptions}
+          </select>
+          <div id="selectedOrderDetails" style="margin-top:10px;padding:10px;background:#e8f5e9;border-radius:6px;display:none"></div>
+        </div>
+      `;
+      document.getElementById('applyOrderId').value = '';
+    } catch (e) {
+      showToast('加载订单列表失败', 'error');
+      return;
+    }
+  } else {
+    // 有指定 orderId，直接加载
+    document.getElementById('applyOrderId').value = orderId;
+    loadOrderDetails(orderId);
+  }
+
+  document.getElementById('applyModal').classList.add('active');
+}
+
+// 加载订单详情
+async function loadOrderDetails(orderId) {
+  if (!orderId) {
+    document.getElementById('selectedOrderDetails').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('applyOrderId').value = orderId;
+
   try {
     const res = await fetch(`/api/orders/${orderId}`, { headers: authHeaders() });
     const data = await res.json();
     if (res.ok && data.order) {
       const order = data.order;
-      document.getElementById('applyOrderInfo').innerHTML = `
+      document.getElementById('selectedOrderDetails').innerHTML = `
         <div><strong>订单号：</strong>${order.id}</div>
         <div><strong>订单金额：</strong>¥${order.totalAmount}</div>
         <div><strong>订单商品：</strong>${order.items.map(it => `${it.name} x${it.qty}`).join('，')}</div>
+        <div><strong>创建时间：</strong>${fmt(order.createdAt)}</div>
       `;
+      document.getElementById('selectedOrderDetails').style.display = 'block';
     }
   } catch (e) {}
-
-  document.getElementById('applyModal').classList.add('active');
 }
 
 function closeApplyModal() {
