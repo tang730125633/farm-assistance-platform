@@ -452,13 +452,19 @@ async function addToCart(productId) {
 // 立即购买：创建订单 → 支付 → 跳转物流页
 async function buyNow(productId) {
     try {
+        console.log('[buyNow] 开始购买流程, productId:', productId);
+        console.log('[buyNow] 当前products数组:', products.map(p => ({ id: p.id, name: p.name })));
+
         if (!currentUser) {
             showMessage('请先登录', 'warning');
             showAuthModal('login');
             return;
         }
         const product = products.find(p => p.id === productId);
+        console.log('[buyNow] 查找商品结果:', product);
+
         if (!product) {
+            console.error('[buyNow] 商品不存在! productId:', productId, '类型:', typeof productId);
             showMessage('商品不存在或已下架', 'error');
             return;
         }

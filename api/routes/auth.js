@@ -109,6 +109,7 @@ router.post('/register', asyncHandler(async (req, res) => {
 // 用户登录
 router.post('/login', asyncHandler(async (req, res) => {
   const { username, password } = req.body;
+  console.log('[登录] 尝试登录:', username);
 
   // 验证必填字段
   validateRequiredFields(req.body, ['username', 'password']);
@@ -118,14 +119,20 @@ router.post('/login', asyncHandler(async (req, res) => {
     user.username === username || user.email === username
   );
 
+  console.log('[登录] 找到用户:', users.length > 0 ? '是' : '否');
+
   if (users.length === 0) {
     return sendErrorResponse(res, ERRORS.UNAUTHORIZED, '用户名或密码错误');
   }
 
   const user = users[0];
+  console.log('[登录] 用户ID:', user.id, '角色:', user.role);
+  console.log('[登录] 数据库密码哈希:', user.password?.substring(0, 20) + '...');
 
   // 验证密码
   const isValidPassword = await bcrypt.compare(password, user.password);
+  console.log('[登录] 密码验证结果:', isValidPassword ? '成功' : '失败');
+
   if (!isValidPassword) {
     return sendErrorResponse(res, ERRORS.UNAUTHORIZED, '用户名或密码错误');
   }

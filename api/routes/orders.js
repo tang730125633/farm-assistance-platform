@@ -93,20 +93,27 @@ router.get('/:id', authenticateToken, async (req, res) => {
 // POST /api/orders
 router.post('/', authenticateToken, async (req, res) => {
   try {
+    console.log('[创建订单] 请求体:', JSON.stringify(req.body));
     const itemsInput = Array.isArray(req.body.items) ? req.body.items : [];
     if (itemsInput.length === 0) return res.status(400).json({ msg: 'items empty' });
 
     const products = await productDb.findAll();
+    console.log('[创建订单] 数据库商品数:', products.length);
+    console.log('[创建订单] 商品ID列表:', products.map(p => p.id));
 
     // 校验、计算与库存扣减（先检查再扣减，确保全部充足）
     const calcItems = [];
     for (const it of itemsInput) {
       const { productId, qty } = it || {};
+      console.log('[创建订单] 处理商品: productId=', productId, 'qty=', qty, '类型:', typeof productId);
       if (!productId || !Number.isInteger(qty) || qty <= 0) {
+        console.log('[创建订单] 商品参数无效');
         return res.status(400).json({ msg: 'bad item' });
       }
       const p = products.find(x => x.id === productId);
+      console.log('[创建订单] 查找商品结果:', p ? `找到 ${p.name}` : '未找到');
       if (!p || p.stock < qty) {
+        console.log('[创建订单] 商品库存不足或不存在: productId=', productId, 'stock=', p?.stock);
         return res.status(400).json({ msg: `stock not enough for ${productId}` });
       }
       calcItems.push({ productId: p.id, name: p.name, price: Number(p.price), qty, farmerId: p.farmerId });
