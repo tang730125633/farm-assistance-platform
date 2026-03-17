@@ -341,7 +341,9 @@ function updateAuthUI() {
         cartBtn.style.display = 'flex'; // 显示购物车按钮
         const myOrdersLink = document.getElementById('myOrdersLink');
         if (myOrdersLink) myOrdersLink.style.display = 'inline-block';
-        
+        const myReturnsLink = document.getElementById('myReturnsLink');
+        if (myReturnsLink) myReturnsLink.style.display = 'inline-block';
+
         // 显示管理员按钮
         if (currentUser.role === 'admin') {
             adminBtn.style.display = 'inline-block';
@@ -355,6 +357,8 @@ function updateAuthUI() {
         cartBtn.style.display = 'none'; // 隐藏购物车按钮
         const myOrdersLink = document.getElementById('myOrdersLink');
         if (myOrdersLink) myOrdersLink.style.display = 'none';
+        const myReturnsLink = document.getElementById('myReturnsLink');
+        if (myReturnsLink) myReturnsLink.style.display = 'none';
     }
 }
 

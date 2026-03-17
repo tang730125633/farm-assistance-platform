@@ -81,6 +81,7 @@ async function loadOrders(showNotification = false){
             ${o.status==='pending' ? `<button class="btn btn-primary btn-small" onclick="pay('${o.id}')">立即支付</button>` : ''}
             ${o.status==='pending' ? `<button class="btn btn-outline btn-small" onclick="cancelOrder('${o.id}')">取消订单</button>` : ''}
             ${o.status==='paid' || o.status==='shipped' || o.status==='finished' ? `<a class="btn btn-outline btn-small" href="/shipments.html?orderId=${o.id}">查看物流</a>` : ''}
+            ${o.status==='finished' ? `<a class="btn btn-outline btn-small" href="/returns.html?applyFor=${o.id}" style="color:#e74c3c;border-color:#e74c3c"><i class="fas fa-undo-alt"></i> 申请退货</a>` : ''}
           </div>
         </div>
       `;

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>退货申请</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .container-narrow{max-width:960px;margin:100px auto 40px;padding:0 20px}
+    .return-card{background:#fff;border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,.08);padding:16px;margin-bottom:14px}
+    .return-hd{display:flex;justify-content:space-between;align-items:center}
+    .return-id{font-weight:600;color:#2c5530}
+    .return-status{padding:2px 10px;border-radius:999px;color:#fff;font-size:12px}
+    .st-pending{background:#f39c12}.st-approved{background:#27ae60}.st-rejected{background:#e74c3c}
+    .return-body{margin-top:10px;color:#444}
+    .return-ops{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+    .product-list{margin:10px 0;padding:10px;background:#f8f9fa;border-radius:6px}
+    .product-item{display:flex;align-items:center;gap:10px;margin:6px 0}
+    .product-img{width:50px;height:50px;object-fit:cover;border-radius:4px}
+    .apply-btn{background:#e74c3c;color:#fff;padding:8px 16px;border-radius:6px;cursor:pointer;border:none}
+    .apply-btn:hover{background:#c0392b}
+    .apply-btn:disabled{background:#95a5a6;cursor:not-allowed}
+    .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1001;align-items:center;justify-content:center}
+    .modal.active{display:flex}
+    .modal-content{background:#fff;border-radius:10px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;padding:20px}
+    .modal-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .form-group{margin-bottom:14px}
+    .form-group label{display:block;margin-bottom:6px;font-weight:500}
+    .form-group textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;min-height:80px;resize:vertical}
+    .form-group input[type="file"]{padding:8px 0}
+    .preview-img{max-width:100px;max-height:100px;margin:5px;border-radius:4px}
+    .topbar{position:fixed;top:0;left:0;right:0;z-index:1000;background:#2c5530;color:#fff;padding:12px 0}
+    .topbar .wrap{max-width:960px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:0 20px}
+    .topbar a{color:#fff;text-decoration:none}
+    .tab-nav{display:flex;gap:10px;margin-bottom:20px;border-bottom:2px solid #eee}
+    .tab-nav button{padding:10px 20px;background:none;border:none;cursor:pointer;font-size:14px;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px}
+    .tab-nav button.active{color:#2c5530;border-bottom-color:#2c5530;font-weight:600}
+    .empty-state{text-align:center;padding:40px;color:#666}
+    .empty-state i{font-size:48px;color:#ddd;margin-bottom:16px}
+    .reason-text{background:#fff3cd;padding:10px;border-radius:6px;margin-top:8px;color:#856404}
+    .admin-comment{background:#d1ecf1;padding:10px;border-radius:6px;margin-top:8px;color:#0c5460}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="wrap">
+      <div><i class="fas fa-undo-alt"></i> 退货管理</div>
+      <div><a href="/">返回首页</a></div>
+    </div>
+  </div>
+
+  <div class="container-narrow">
+    <!-- 角色切换标签 -->
+    <div class="tab-nav" id="tabNav">
+      <button class="active" data-tab="my">我的退货申请</button>
+      <button data-tab="pending" id="pendingTab" style="display:none">待审核退货</button>
+      <button data-tab="all" id="allTab" style="display:none">所有退货</button>
+    </div>
+
+    <!-- 我的退货申请 -->
+    <div id="myReturns" class="tab-content">
+      <div id="myReturnsList">
+        <div class="empty-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>加载中...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 待审核退货（农户/管理员） -->
+    <div id="pendingReturns" class="tab-content" style="display:none">
+      <div id="pendingReturnsList">
+        <div class="empty-state">
+          <i class="fas fa-check-circle"></i>
+          <p>暂无待审核退货申请</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 所有退货（管理员） -->
+    <div id="allReturns" class="tab-content" style="display:none">
+      <div id="allReturnsList">
+        <div class="empty-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>加载中...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 申请退货弹窗 -->
+  <div id="applyModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-hd">
+        <h3>申请退货</h3>
+        <button onclick="closeApplyModal()" style="background:none;border:none;font-size:24px;cursor:pointer">&times;</button>
+      </div>
+      <form id="applyForm">
+        <input type="hidden" id="applyOrderId">
+        <div class="form-group">
+          <label>订单信息</label>
+          <div id="applyOrderInfo" style="padding:10px;background:#f8f9fa;border-radius:6px"></div>
+        </div>
+        <div class="form-group">
+          <label>退货原因 <span style="color:#e74c3c">*</span></label>
+          <textarea id="applyReason" placeholder="请详细说明退货原因..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label>上传凭证图片（最多3张）</label>
+          <input type="file" id="applyImages" accept="image/*" multiple onchange="previewImages(this)">
+          <div id="imagePreview" style="margin-top:10px"></div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+          <button type="button" class="btn btn-outline" onclick="closeApplyModal()">取消</button>
+          <button type="submit" class="btn btn-primary">提交申请</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 处理退货弹窗（管理员/农户） -->
+  <div id="processModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-hd">
+        <h3>处理退货申请</h3>
+        <button onclick="closeProcessModal()" style="background:none;border:none;font-size:24px;cursor:pointer">&times;</button>
+      </div>
+      <form id="processForm">
+        <input type="hidden" id="processReturnId">
+        <div class="form-group">
+          <label>退货详情</label>
+          <div id="processReturnInfo" style="padding:10px;background:#f8f9fa;border-radius:6px"></div>
+        </div>
+        <div class="form-group">
+          <label>处理结果 <span style="color:#e74c3c">*</span></label>
+          <select id="processStatus" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px" required>
+            <option value="">请选择</option>
+            <option value="approved">同意退货</option>
+            <option value="rejected">拒绝退货</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>处理意见</label>
+          <textarea id="processComment" placeholder="请输入处理意见（可选）..."></textarea>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+          <button type="button" class="btn btn-outline" onclick="closeProcessModal()">取消</button>
+          <button type="submit" class="btn btn-primary">提交处理</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/returns.js"></script>
+</body>
+</html>
