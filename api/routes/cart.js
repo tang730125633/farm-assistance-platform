@@ -6,11 +6,16 @@ const { authenticateToken } = require('../utils/auth');
 
 // 判断是否使用 PostgreSQL
 const usePostgres = process.env.DATABASE_URL && process.env.NODE_ENV === 'production';
+console.log('[购物车] 环境检查:', {
+  usePostgres,
+  hasDatabaseUrl: !!process.env.DATABASE_URL,
+  nodeEnv: process.env.NODE_ENV
+});
 
 // 获取用户购物车
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    console.log('[购物车 GET] 用户ID:', req.user.id);
+    console.log('[购物车 GET] 用户ID:', req.user.id, '使用PostgreSQL:', usePostgres);
 
     let cartItems = [];
     if (usePostgres) {
@@ -348,6 +353,48 @@ router.post('/checkout', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('[购物车] 结算失败:', error);
     res.status(500).json({ msg: '结算失败' });
+  }
+});
+
+// 诊断端点：检查数据库状态
+router.get('/debug/status', async (req, res) => {
+  try {
+    // 检查 cart 表是否存在
+    const tableResult = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'cart'
+      )
+    `);
+    const tableExists = tableResult.rows[0].exists;
+
+    // 检查 cart 表数据
+    const countResult = await pool.query('SELECT COUNT(*) as count FROM cart');
+    const rowCount = parseInt(countResult.rows[0].count);
+
+    // 检查所有 cart 数据
+    const dataResult = await pool.query('SELECT * FROM cart LIMIT 10');
+
+    res.json({
+      environment: {
+        nodeEnv: process.env.NODE_ENV,
+        hasDatabaseUrl: !!process.env.DATABASE_URL,
+        usePostgres
+      },
+      database: {
+        cartTableExists: tableExists,
+        cartRowCount: rowCount,
+        cartData: dataResult.rows
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      environment: {
+        nodeEnv: process.env.NODE_ENV,
+        hasDatabaseUrl: !!process.env.DATABASE_URL
+      }
+    });
   }
 });
 
