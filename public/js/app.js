@@ -595,7 +595,7 @@ function renderCartItems() {
 }
 
 async function updateQuantity(productId, newQuantity) {
-    if (newQuantity < 0) return;
+    if (newQuantity < 1) return;
     
     try {
         const response = await fetch('/api/cart/update', {
@@ -691,10 +691,10 @@ async function checkout() {
             hideCartModal();
             loadCartItems();
             
-            // 跳转到支付页面
+            // 跳转到订单页面
             if (data.order) {
                 currentOrderId = data.order.id;
-                showPaymentModal(data.order);
+                window.location.href = `/orders.html`;
             }
         } else {
             showMessage(data.msg || '结算失败', 'error');
