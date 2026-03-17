@@ -80,8 +80,7 @@ async function loadOrders(showNotification = false){
           <div class="order-ops">
             ${o.status==='pending' ? `<button class="btn btn-primary btn-small" onclick="pay('${o.id}')">立即支付</button>` : ''}
             ${o.status==='pending' ? `<button class="btn btn-outline btn-small" onclick="cancelOrder('${o.id}')">取消订单</button>` : ''}
-            ${o.status==='paid' || o.status==='shipped' || o.status==='finished' ? `<a class="btn btn-outline btn-small" href="/shipments.html?orderId=${o.id}">查看物流</a>` : ''}
-            ${o.status==='finished' ? `<a class="btn btn-outline btn-small" href="/returns.html?applyFor=${o.id}" style="color:#e74c3c;border-color:#e74c3c"><i class="fas fa-undo-alt"></i> 申请退货</a>` : ''}
+            ${o.status==='paid' ? `<a class="btn btn-outline btn-small" href="/returns.html?applyFor=${o.id}" style="color:#e74c3c;border-color:#e74c3c"><i class="fas fa-undo-alt"></i> 申请退货</a>` : ''}
           </div>
         </div>
       `;
@@ -111,7 +110,7 @@ async function loadOrders(showNotification = false){
 
 async function pay(orderId){
   const r = await fetchJSON(`/api/payments/${orderId}/pay`, { method:'POST', headers:{ ...authHeaders() }});
-  if(r.ok){ toast('支付成功','ok'); loadOrders(); window.location.href = `/shipments.html?orderId=${orderId}`; }
+  if(r.ok){ toast('支付成功','ok'); loadOrders(); }
   else { toast((r.data&&r.data.error)||`支付失败(${r.status})`,'error'); }
 }
 
