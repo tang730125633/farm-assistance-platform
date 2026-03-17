@@ -481,13 +481,15 @@ document.getElementById('processForm').addEventListener('submit', async (e) => {
   }
 
   try {
-    const res = await fetch(`/api/returns/${currentProcessReturnId}/process`, {
-      method: 'POST',
+    // 根据状态调用正确的后端路由
+    const endpoint = status === 'approved' ? 'approve' : 'reject';
+    const res = await fetch(`/api/returns/${currentProcessReturnId}/${endpoint}`, {
+      method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         ...authHeaders()
       },
-      body: JSON.stringify({ status, comment })
+      body: JSON.stringify({ comment })
     });
 
     const data = await res.json();
