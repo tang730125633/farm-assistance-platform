@@ -165,13 +165,13 @@ router.post('/', authenticateToken, upload.array('images', 5), async (req, res) 
       return res.status(403).json({ error: { code: 'FORBIDDEN', message: '无权申请此订单退货' } });
     }
 
-    // 只有已完成的订单才能退货
-    if (order.status !== 'finished') {
+    // 只有已支付或已完成的订单才能退货
+    if (!['paid', 'finished'].includes(order.status)) {
       // 删除已上传的图片
       if (req.files) {
         req.files.forEach(file => fs.unlinkSync(file.path));
       }
-      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: '只有已完成的订单才能申请退货' } });
+      return res.status(400).json({ error: { code: 'BAD_REQUEST', message: '只有已支付或已完成的订单才能申请退货' } });
     }
 
     // 检查是否已有进行中的退货申请

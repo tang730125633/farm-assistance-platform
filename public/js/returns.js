@@ -428,7 +428,7 @@ document.getElementById('applyForm').addEventListener('submit', async (e) => {
       closeApplyModal();
       loadReturns();
     } else {
-      showToast(data.error || '提交失败', 'error');
+      showToast(data.error?.message || data.error || '提交失败', 'error');
     }
   } catch (e) {
     showToast('网络错误', 'error');
