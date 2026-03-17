@@ -19,8 +19,13 @@ function saveCartData(cart) {
 // 获取用户购物车
 router.get('/', authenticateToken, async (req, res) => {
   try {
+    console.log('[购物车 GET] 用户ID:', req.user.id);
     const cart = getCartData();
+    console.log('[购物车 GET] 所有购物车数据:', cart.length, '条');
+    console.log('[购物车 GET] 购物车用户ID列表:', cart.map(i => i.userId));
+
     const userCart = cart.filter(item => item.userId === req.user.id);
+    console.log('[购物车 GET] 当前用户购物车:', userCart.length, '条');
 
     // 获取产品详细信息（从 PostgreSQL）
     const products = await productDb.findAll();
@@ -51,7 +56,11 @@ router.post('/add', authenticateToken, async (req, res) => {
   try {
     const { productId, quantity = 1 } = req.body;
 
-    console.log('[购物车] 添加商品:', { productId, quantity, userId: req.user.id });
+    console.log('[购物车 POST] 添加商品:', { productId, quantity, userId: req.user.id });
+
+    // 先读取当前购物车状态
+    const cartBefore = getCartData();
+    console.log('[购物车 POST] 添加前购物车数量:', cartBefore.length);
 
     if (!productId || !Number.isInteger(quantity) || quantity <= 0) {
       return res.status(400).json({ msg: 'Invalid productId or quantity' });
@@ -98,6 +107,12 @@ router.post('/add', authenticateToken, async (req, res) => {
     }
 
     saveCartData(cart);
+
+    // 验证保存结果
+    const cartAfter = getCartData();
+    console.log('[购物车 POST] 保存后购物车数量:', cartAfter.length);
+    console.log('[购物车 POST] 保存后用户购物车:', cartAfter.filter(i => i.userId === req.user.id));
+
     res.json({ msg: 'Product added to cart successfully' });
   } catch (error) {
     console.error('[购物车] 添加失败:', error);
