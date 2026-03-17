@@ -242,7 +242,9 @@ async function handleLogin(e) {
             localStorage.setItem('user', JSON.stringify(result.user));
 
             // 根据角色跳转到不同页面
-            if (result.user.role === 'farmer' || result.user.role === 'admin') {
+            if (result.user.role === 'admin') {
+                window.location.href = '/admin-dashboard.html';
+            } else if (result.user.role === 'farmer') {
                 window.location.href = '/farmer-dashboard.html';
             } else {
                 updateAuthUI();
