@@ -166,6 +166,7 @@ const productDb = {
       if (updateData.name !== undefined) { fields.push(`name = $${idx++}`); values.push(updateData.name); }
       if (updateData.description !== undefined) { fields.push(`description = $${idx++}`); values.push(updateData.description); }
       if (updateData.price !== undefined) { fields.push(`price = $${idx++}`); values.push(updateData.price); }
+      if (updateData.unit !== undefined) { fields.push(`unit = $${idx++}`); values.push(updateData.unit); }
       if (updateData.stock !== undefined) { fields.push(`stock = $${idx++}`); values.push(updateData.stock); }
       if (updateData.image !== undefined) { fields.push(`image = $${idx++}`); values.push(updateData.image); }
 

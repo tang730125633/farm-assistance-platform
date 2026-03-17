@@ -98,10 +98,17 @@ router.get('/', async (req, res) => {
     const { page = 1, limit = 10, farmerId, search, category } = req.query;
     const pageNum = Math.max(parseInt(page, 10) || 1, 1);
     const limitNum = Math.max(parseInt(limit, 10) || 10, 1);
+
+    console.log(`[商品列表] 开始查询... farmerId=${farmerId}`);
+
     let products = await productDb.findAll();
 
-    console.log(`[商品列表] 查询条件: farmerId=${farmerId}, search=${search}, 总商品数: ${products.length}`);
-    console.log(`[商品列表] 商品详情:`, products.map(p => ({ id: p.id.substring(0,8), name: p.name, farmerId: p.farmerId?.substring(0,8) })));
+    console.log(`[商品列表] 数据库返回商品数: ${products.length}`);
+    if (products.length > 0) {
+      console.log(`[商品列表] 商品详情:`, products.map(p => ({ id: p.id?.substring(0,8), name: p.name, farmerId: p.farmerId?.substring(0,8) })));
+    } else {
+      console.log(`[商品列表] 警告: 数据库中没有商品!`);
+    }
 
     // 按农户筛选
     if (farmerId) {
@@ -273,7 +280,9 @@ router.post('/', authenticateToken, requireFarmerOrAdmin, upload.single('image')
 
     // 保存商品
     try {
+      console.log(`[上架商品] 准备保存商品:`, { id: newProduct.id, name: newProduct.name, farmerId: newProduct.farmerId });
       const savedProduct = await productDb.create(newProduct);
+      console.log(`[上架商品] 商品已保存:`, savedProduct ? '成功' : '失败');
 
       if (savedProduct) {
         res.status(201).json({
@@ -284,7 +293,7 @@ router.post('/', authenticateToken, requireFarmerOrAdmin, upload.single('image')
         res.status(500).json({ error: '商品上架失败，请重试' });
       }
     } catch (error) {
-      console.error('保存商品错误:', error);
+      console.error('[上架商品] 保存商品错误:', error);
       res.status(500).json({ error: '商品上架失败，请重试' });
     }
   } catch (error) {
