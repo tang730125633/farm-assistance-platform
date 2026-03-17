@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { addItem, findById, updateItem, deleteItem, readJsonFile } = require('../dao/db');
+const { productDb } = require('../dao/dbAdapter');
 const { authenticateToken } = require('../utils/auth');
 const { cacheMiddleware } = require('../utils/cache');
 
@@ -75,42 +75,42 @@ function requireFarmerOrAdmin(req, res, next) {
  * @param {Object} res - 响应对象
  * @param {Function} next - 下一个中间件
  */
-function requireProductOwnership(req, res, next) {
+async function requireProductOwnership(req, res, next) {
   const productId = req.params.id;
-  const product = findById('products.json', productId);
-  
+  const product = await productDb.findById(productId);
+
   if (!product) {
     return res.status(404).json({ error: '商品不存在' });
   }
-  
+
   // 管理员可以操作所有商品，农户只能操作自己的商品
   if (req.user.role !== 'admin' && product.farmerId !== req.user.id) {
     return res.status(403).json({ error: '只能操作自己的商品' });
   }
-  
+
   req.product = product;
   next();
 }
 
 // 获取商品列表 - 添加缓存
-router.get('/', cacheMiddleware(60000, (req) => `products:${JSON.stringify(req.query)}`), (req, res) => {
+router.get('/', cacheMiddleware(60000, (req) => `products:${JSON.stringify(req.query)}`), async (req, res) => {
   try {
     const { page = 1, limit = 10, farmerId, search, category } = req.query;
     const pageNum = Math.max(parseInt(page, 10) || 1, 1);
     const limitNum = Math.max(parseInt(limit, 10) || 10, 1);
-    let products = readJsonFile('products.json');
-    
+    let products = await productDb.findAll();
+
     // 按农户筛选
     if (farmerId) {
       products = products.filter(product => product.farmerId === farmerId);
     }
-    
+
     // 按名称搜索
     if (search) {
       const searchLower = search.toLowerCase();
-      products = products.filter(product => 
+      products = products.filter(product =>
         product.name.toLowerCase().includes(searchLower) ||
-        product.description.toLowerCase().includes(searchLower)
+        (product.description && product.description.toLowerCase().includes(searchLower))
       );
     }
     // 按分类筛选（可选）
@@ -118,12 +118,12 @@ router.get('/', cacheMiddleware(60000, (req) => `products:${JSON.stringify(req.q
       const c = String(category).toLowerCase();
       products = products.filter(p => (p.category || '').toLowerCase() === c);
     }
-    
+
     // 分页
     const startIndex = (pageNum - 1) * limitNum;
     const endIndex = startIndex + limitNum;
     const paginatedProducts = products.slice(startIndex, endIndex);
-    
+
     res.json({
       products: paginatedProducts,
       pagination: {
@@ -140,12 +140,12 @@ router.get('/', cacheMiddleware(60000, (req) => `products:${JSON.stringify(req.q
 });
 
 // 获取当前用户的商品列表（放在 /:id 之前，避免被参数路由匹配）
-router.get('/my/products', authenticateToken, requireFarmerOrAdmin, (req, res) => {
+router.get('/my/products', authenticateToken, requireFarmerOrAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const pageNum = Math.max(parseInt(page, 10) || 1, 1);
     const limitNum = Math.max(parseInt(limit, 10) || 10, 1);
-    let products = readJsonFile('products.json');
+    let products = await productDb.findAll();
 
     // 筛选当前用户的商品
     products = products.filter(product => product.farmerId === req.user.id);
@@ -171,12 +171,12 @@ router.get('/my/products', authenticateToken, requireFarmerOrAdmin, (req, res) =
 });
 
 // 我的商品（别名路由，等价于 /my/products；需在 /:id 之前）
-router.get('/my', authenticateToken, requireFarmerOrAdmin, (req, res) => {
+router.get('/my', authenticateToken, requireFarmerOrAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const pageNum = Math.max(parseInt(page, 10) || 1, 1);
     const limitNum = Math.max(parseInt(limit, 10) || 10, 1);
-    let list = readJsonFile('products.json');
+    let list = await productDb.findAll();
     list = list.filter(product => product.farmerId === req.user.id);
     const startIndex = (pageNum - 1) * limitNum;
     const endIndex = startIndex + limitNum;
@@ -197,15 +197,15 @@ router.get('/my', authenticateToken, requireFarmerOrAdmin, (req, res) => {
 });
 
 // 获取单个商品详情
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const productId = req.params.id;
-    const product = findById('products.json', productId);
-    
+    const product = await productDb.findById(productId);
+
     if (!product) {
       return res.status(404).json({ error: '商品不存在' });
     }
-    
+
     res.json({ product });
   } catch (error) {
     console.error('获取商品详情错误:', error);
@@ -214,7 +214,7 @@ router.get('/:id', (req, res) => {
 });
 
 // 农户上架商品（需要 farmer 或 admin 权限）
-router.post('/', authenticateToken, requireFarmerOrAdmin, upload.single('image'), (req, res) => {
+router.post('/', authenticateToken, requireFarmerOrAdmin, upload.single('image'), async (req, res) => {
   try {
     const { name, description, price, stock, unit } = req.body;
 
@@ -263,14 +263,19 @@ router.post('/', authenticateToken, requireFarmerOrAdmin, upload.single('image')
     };
 
     // 保存商品
-    const savedProduct = addItem('products.json', newProduct);
+    try {
+      const savedProduct = await productDb.create(newProduct);
 
-    if (savedProduct) {
-      res.status(201).json({
-        message: '商品上架成功',
-        product: savedProduct
-      });
-    } else {
+      if (savedProduct) {
+        res.status(201).json({
+          message: '商品上架成功',
+          product: savedProduct
+        });
+      } else {
+        res.status(500).json({ error: '商品上架失败，请重试' });
+      }
+    } catch (error) {
+      console.error('保存商品错误:', error);
       res.status(500).json({ error: '商品上架失败，请重试' });
     }
   } catch (error) {
@@ -284,7 +289,7 @@ router.post('/', authenticateToken, requireFarmerOrAdmin, upload.single('image')
 });
 
 // 修改商品信息（仅商品拥有者 farmer 或 admin）
-router.put('/:id', authenticateToken, requireProductOwnership, upload.single('image'), (req, res) => {
+router.put('/:id', authenticateToken, requireProductOwnership, upload.single('image'), async (req, res) => {
   try {
     const productId = req.params.id;
     const { name, description, price, stock, unit } = req.body;
@@ -347,14 +352,19 @@ router.put('/:id', authenticateToken, requireProductOwnership, upload.single('im
     updates.updatedAt = new Date().toISOString();
 
     // 更新商品
-    const updatedProduct = updateItem('products.json', productId, updates);
+    try {
+      const updatedProduct = await productDb.update(productId, updates);
 
-    if (updatedProduct) {
-      res.json({
-        message: '商品信息更新成功',
-        product: updatedProduct
-      });
-    } else {
+      if (updatedProduct) {
+        res.json({
+          message: '商品信息更新成功',
+          product: updatedProduct
+        });
+      } else {
+        res.status(500).json({ error: '商品信息更新失败，请重试' });
+      }
+    } catch (error) {
+      console.error('更新商品错误:', error);
       res.status(500).json({ error: '商品信息更新失败，请重试' });
     }
   } catch (error) {
@@ -368,13 +378,13 @@ router.put('/:id', authenticateToken, requireProductOwnership, upload.single('im
 });
 
 // 删除商品（仅商品拥有者 farmer 或 admin）
-router.delete('/:id', authenticateToken, requireProductOwnership, (req, res) => {
+router.delete('/:id', authenticateToken, requireProductOwnership, async (req, res) => {
   try {
     const productId = req.params.id;
-    
+
     // 删除商品
-    const success = deleteItem('products.json', productId);
-    
+    const success = await productDb.delete(productId);
+
     if (success) {
       res.json({
         message: '商品删除成功'
