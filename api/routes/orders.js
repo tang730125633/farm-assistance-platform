@@ -47,7 +47,11 @@ router.get('/', authenticateToken, async (req, res) => {
     result = orders.filter(o => o.userId === req.user.id);
   }
 
-  res.json({ orders: result });
+    res.json({ orders: result });
+  } catch (error) {
+    console.error('获取订单列表错误:', error);
+    res.status(500).json({ msg: 'server error' });
+  }
 });
 
 // GET /api/orders/:id
