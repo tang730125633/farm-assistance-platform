@@ -12,6 +12,7 @@ const paymentsRoutes = require('./routes/payments');
 const shipmentsRoutes = require('./routes/shipments');
 const cartRoutes = require('./routes/cart');
 const farmerSalesRoutes = require('./routes/farmerSales');
+const returnsRoutes = require('./routes/returns');
 
 const app = express();
 const DEFAULT_PORT = process.env.PORT || 3000;
@@ -24,6 +25,7 @@ app.use(performanceMiddleware);
 
 // 静态文件服务
 app.use(express.static(path.join(__dirname, '../public')));
+app.use('/uploads/returns', express.static(path.join(__dirname, '../uploads/returns')));
 
 // API 路由
 app.use('/api/auth', authRoutes);
@@ -33,6 +35,7 @@ app.use('/api/payments', paymentsRoutes);
 app.use('/api/shipments', shipmentsRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/farmer-sales', farmerSalesRoutes);
+app.use('/api/returns', returnsRoutes);
 
 // 根路径 - 返回主页面
 app.get('/', (req, res) => {
@@ -52,6 +55,7 @@ app.get('/api', (req, res) => {
       shipments: '/api/shipments',
       cart: '/api/cart',
       farmerSales: '/api/farmer-sales',
+      returns: '/api/returns',
       stats: '/api/stats'
     }
   });

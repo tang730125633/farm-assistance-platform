@@ -70,5 +70,14 @@
     "role": "farmer",
     "createdAt": "2025-12-13T16:21:14.461Z",
     "updatedAt": "2025-12-13T16:21:14.461Z"
+  },
+  {
+    "id": "admin-001-0000-000000000001",
+    "username": "admin",
+    "email": "admin@farmplatform.com",
+    "password": "$2a$10$YourHashedPasswordHere",
+    "role": "admin",
+    "createdAt": "2025-03-17T12:00:00.000Z",
+    "updatedAt": "2025-03-17T12:00:00.000Z"
   }
 ]
